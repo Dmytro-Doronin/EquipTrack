@@ -1,4 +1,5 @@
-:root {
-    --color-background: #e5e7eb;
+@theme inline {
+    --color-gray-main: #e5e7eb;
     --color-main: #1f2937;
+    --color-mail-light: #374151;
 }
