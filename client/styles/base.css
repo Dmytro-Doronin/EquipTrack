@@ -1,0 +1,68 @@
+@layer base {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+    html {
+        scrollbar-gutter: stable;
+        font-family: 'Raleway', system-ui, sans-serif;
+        overflow-x: hidden;
+    }
+    body[data-scroll-locked] {
+        overflow: visible !important;
+        margin-right: 0 !important;
+    }
+    html,
+    body {
+        height: 100%;
+    }
+    html {
+        scrollbar-gutter: stable;
+    }
+    body {
+        margin: 0;
+        background-color: var(--color-background);
+        font-family: 'Raleway', system-ui, sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    ul,
+    ol,
+    li,
+    figure,
+    blockquote {
+        margin: 0;
+        padding: 0;
+    }
+
+    ul,
+    ol {
+        list-style: none;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    img,
+    video {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+}
