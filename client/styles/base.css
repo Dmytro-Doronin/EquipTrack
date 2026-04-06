@@ -6,7 +6,7 @@
     }
     html {
         scrollbar-gutter: stable;
-        font-family: 'Raleway', system-ui, sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         overflow-x: hidden;
     }
     body[data-scroll-locked] {
@@ -22,8 +22,7 @@
     }
     body {
         margin: 0;
-        background-color: var(--color-background);
-        font-family: 'Raleway', system-ui, sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
     }
 
     h1,
