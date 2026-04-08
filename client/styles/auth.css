@@ -4,6 +4,10 @@
     }
 
     .auth-form {
-        @apply w-full max-w-[448px] p-[32px] bg-white mt-[30px] rounded-[12px] relative;
+        @apply w-full max-w-[448px] p-[32px] bg-white mt-[30px] rounded-[12px] relative shadow-[0px_10px_15px_0px_#0000001A,0px_4px_6px_0px_#0000001A];
+    }
+
+    .form-header {
+        @apply flex flex-col items-center justify-center;
     }
 }
