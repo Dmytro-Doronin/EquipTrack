@@ -1,0 +1,9 @@
+@layer components {
+    .auth-page {
+        @apply w-full h-[calc(100vh-80px)] flex items-center justify-center px-4;
+    }
+
+    .auth-form {
+        @apply w-full max-w-[448px] p-[32px] bg-white mt-[30px] rounded-[12px] relative;
+    }
+}

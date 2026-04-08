@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button/Button';
+import { SignupForm } from '@/components/forms/signupForm/signupForm';
 
 export default function SingUp() {
     return (
-        <div className="text-black">
-            <Button>asd</Button>
+        <div className="auth-page">
+            <SignupForm />
         </div>
     );
 }
