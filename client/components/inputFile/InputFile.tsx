@@ -33,7 +33,7 @@ export const InputFile = ({ callback, children }: InputFileType) => {
     };
 
     return (
-        <div onClick={selectFileHandler}>
+        <div className="cursor-pointer" onClick={selectFileHandler}>
             {children}
             <input
                 style={{ display: 'none' }}
