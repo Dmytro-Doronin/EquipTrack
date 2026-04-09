@@ -1,32 +1,98 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
+import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
+import { signUpSchema } from '@/components/forms/signupForm/signUpForm.validation';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button/Button';
-import { TextField } from '@/components/ui/textField/TextField';
+import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 
 import Envelope from '../../icons/Envelope';
+import KeyPass from '../../icons/KeyPass';
 import Lock from '../../icons/Lock';
 import User from '../../icons/User';
 
-export const SignupForm = () => {
+type SignUpFormType = {
+    isLoading: boolean;
+    onSubmit: (data: FormData) => void;
+};
+
+export const SignupForm = ({ onSubmit }: SignUpFormType) => {
+    const [avatar, setAvatar] = useState<File | null>(null);
+    const { control, handleSubmit, reset } = useForm<SignUpFormFormValues>({
+        resolver: zodResolver(signUpSchema),
+        defaultValues: {
+            login: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        },
+    });
+    const password = useWatch({
+        control,
+        name: 'password',
+        defaultValue: '',
+    });
+    const onSubmitForm = (data: SignUpFormFormValues) => {
+        const formData = new FormData();
+        formData.append('login', data.login);
+        formData.append('email', data.email);
+        if (avatar) {
+            formData.append('avatar', avatar);
+        }
+
+        formData.append('password', data.password);
+        formData.append('confirmPassword', data.confirmPassword);
+        onSubmit(formData);
+        reset();
+    };
+
     return (
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit(onSubmitForm)}>
             <div className="form-header mb-[32px]">
-                <AvatarChanger />
+                <AvatarChanger sendAvatar={setAvatar} />
                 <h2 className="font-bold text-[24px] mt-[24px]">Create a new account</h2>
                 <p className="text-[14px] text-sub-text mt-[8px]">Enter your details to register</p>
             </div>
 
-            <div className="flex flex-col gap-[20px] justify-center">
-                <TextField placeholder="asd" Icon={User} />
-                <TextField placeholder="asd" Icon={Envelope} />
-                <TextField placeholder="asd" Icon={Lock} />
+            <div className="flex flex-col gap-5 justify-center mb-5">
+                <ControlledTextField
+                    placeholder="Ex: John Doe"
+                    control={control}
+                    name="login"
+                    Icon={User}
+                />
+
+                <ControlledTextField
+                    placeholder="Ex: Johndoe@gmail.com"
+                    control={control}
+                    name="email"
+                    Icon={Envelope}
+                />
+
+                <ControlledTextField
+                    placeholder="Enter your password"
+                    control={control}
+                    name="password"
+                    type="password"
+                    Icon={Lock}
+                />
+                <ControlledTextField
+                    placeholder="Confirm your password"
+                    control={control}
+                    name="confirmPassword"
+                    type="password"
+                    Icon={KeyPass}
+                />
                 <p className="text-[12px] text-sub-text">
                     Must contain 1 uppercase letter, 1 number, min. 8 characters
                 </p>
             </div>
-            <PasswordStrengthIndicator password="a3" />
+            <PasswordStrengthIndicator password={password} />
             <Button className="mb-5" fullWidth>
                 Sign Up
             </Button>

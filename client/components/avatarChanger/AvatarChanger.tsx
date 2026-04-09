@@ -4,11 +4,16 @@ import { useEffect, useState } from 'react';
 import UsersIcon from '@/components/icons/UsersIcon';
 import { InputFile } from '@/components/inputFile/InputFile';
 
-export const AvatarChanger = () => {
+type AvatarChangerProps = {
+    sendAvatar: (avatar: File | null) => void;
+};
+
+export const AvatarChanger = ({ sendAvatar }: AvatarChangerProps) => {
     const [avatar, setAvatar] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const updateAvatarHandler = async (data: File) => {
         setAvatar(data);
+        sendAvatar(data);
     };
 
     useEffect(() => {

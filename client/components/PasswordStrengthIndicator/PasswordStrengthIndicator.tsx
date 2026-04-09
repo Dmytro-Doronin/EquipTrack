@@ -10,13 +10,17 @@ export const PasswordStrengthIndicator = ({ password }: PasswordStrengthIndicato
     const strength = useMemo(() => getPasswordStrength(password), [password]);
 
     return (
-        <div className="mt-2 flex gap-2 mb-5">
-            {[1, 2, 3, 4].map((level) => (
-                <div
-                    key={level}
-                    className={['h-2 flex-1 rounded', getStrengthColor(strength, level)].join(' ')}
-                />
-            ))}
+        <div className="mb-5">
+            <p className="mb-2 text-[13px] font-bold text-sub-text">Password strength indicator</p>
+
+            <div className="flex w-full gap-2">
+                {[1, 2, 3, 4].map((level) => (
+                    <div
+                        key={level}
+                        className={`h-2 flex-1 rounded ${getStrengthColor(strength, level)}`}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
