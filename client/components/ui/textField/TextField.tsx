@@ -194,7 +194,11 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
                                 onClick={() => setShowPassword((prev) => !prev)}
                                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                             >
-                                {showPassword ? <ClosedEye /> : <Eye />}
+                                {showPassword ? (
+                                    <ClosedEye className="text-sub-text" />
+                                ) : (
+                                    <Eye className="text-sub-text" />
+                                )}
                             </button>
                         )}
                     </div>

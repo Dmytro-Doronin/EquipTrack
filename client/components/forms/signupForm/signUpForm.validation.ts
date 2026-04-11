@@ -6,17 +6,11 @@ export const passwordSchema = z
     .min(passwordRules.minLength, {
         error: `Password must be at least ${passwordRules.minLength} characters`,
     })
-    .refine(passwordRules.hasLowercase, {
-        error: 'Password must contain a lowercase letter',
-    })
     .refine(passwordRules.hasUppercase, {
         error: 'Password must contain an uppercase letter',
     })
     .refine(passwordRules.hasNumber, {
         error: 'Password must contain a number',
-    })
-    .refine(passwordRules.hasSpecial, {
-        error: 'Password must contain a special character',
     });
 
 export const signUpSchema = z

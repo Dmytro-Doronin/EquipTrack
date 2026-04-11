@@ -16,12 +16,11 @@ import KeyPass from '../../icons/KeyPass';
 import Lock from '../../icons/Lock';
 import User from '../../icons/User';
 
-type SignUpFormType = {
-    isLoading: boolean;
-    onSubmit: (data: FormData) => void;
-};
+// type SignUpFormType = {
+//     isLoading: boolean;
+// };
 
-export const SignupForm = ({ onSubmit }: SignUpFormType) => {
+export const SignupForm = () => {
     const [avatar, setAvatar] = useState<File | null>(null);
     const { control, handleSubmit, reset } = useForm<SignUpFormFormValues>({
         resolver: zodResolver(signUpSchema),
@@ -47,7 +46,7 @@ export const SignupForm = ({ onSubmit }: SignUpFormType) => {
 
         formData.append('password', data.password);
         formData.append('confirmPassword', data.confirmPassword);
-        onSubmit(formData);
+        console.log(formData.get('password'));
         reset();
     };
 
@@ -92,7 +91,8 @@ export const SignupForm = ({ onSubmit }: SignUpFormType) => {
                     Must contain 1 uppercase letter, 1 number, min. 8 characters
                 </p>
             </div>
-            <PasswordStrengthIndicator password={password} />
+            {password.length > 0 && <PasswordStrengthIndicator password={password} />}
+
             <Button className="mb-5" fullWidth>
                 Sign Up
             </Button>
