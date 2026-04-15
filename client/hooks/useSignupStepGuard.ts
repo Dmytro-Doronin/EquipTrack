@@ -9,7 +9,7 @@ import { SIGNUP_STEP_ORDER } from '@/utils/signupStep';
 export const useSignupStepGuard = (
     currentStep: SignupStepKey,
     maxAllowedStep: SignupStepKey,
-    fallbackPath: string = '/auth/signup',
+    fallbackPath: string = '/signup',
 ) => {
     const router = useRouter();
 

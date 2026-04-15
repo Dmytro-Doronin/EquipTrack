@@ -1,15 +1,17 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
 import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
 import { signUpSchema } from '@/components/forms/signupForm/signUpForm.validation';
-import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator/PasswordStrengthIndicator';
+import { PasswordStrengthIndicator } from '@/components/passwordStrengthIndicator/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 import Envelope from '../../icons/Envelope';
 import KeyPass from '../../icons/KeyPass';
@@ -22,6 +24,10 @@ import User from '../../icons/User';
 
 export const SignupForm = () => {
     const [avatar, setAvatar] = useState<File | null>(null);
+    const router = useRouter();
+
+    const setEmail = useSignupFlowStore((state) => state.setEmail);
+    const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
     const { control, handleSubmit, reset } = useForm<SignUpFormFormValues>({
         resolver: zodResolver(signUpSchema),
         defaultValues: {
@@ -47,7 +53,11 @@ export const SignupForm = () => {
         formData.append('password', data.password);
         formData.append('confirmPassword', data.confirmPassword);
         console.log(formData.get('password'));
+        setEmail(data.email);
+        setMaxAllowedStep('verify-email');
+
         reset();
+        router.push('/signup/verify-email');
     };
 
     return (
