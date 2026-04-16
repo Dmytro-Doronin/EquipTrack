@@ -1,6 +1,7 @@
 import Account from '@/components/icons/Account';
 import Envelope from '@/components/icons/Envelope';
 import Secure from '@/components/icons/Secure';
+import SecureSuccess from '@/components/icons/SecureSuccess';
 
 export const SIGNUP_STEPS = [
     {
@@ -23,6 +24,13 @@ export const SIGNUP_STEPS = [
         path: '/signup/code',
         icon: Secure,
         order: 2,
+    },
+    {
+        key: 'success-verification',
+        label: 'Success',
+        path: '/signup/success-verification',
+        icon: SecureSuccess,
+        order: 3,
     },
 ] as const;
 

@@ -4,6 +4,7 @@ export const SIGNUP_STEP_ORDER: Record<SignupStepKey, number> = {
     signup: 0,
     'verify-email': 1,
     code: 2,
+    'success-verification': 3,
 };
 
 export const isStepAvailable = (step: SignupStepKey, maxAllowedStep: SignupStepKey) => {
@@ -21,6 +22,8 @@ export const getNextStep = (step: SignupStepKey): SignupStepKey | null => {
         case 'verify-email':
             return 'code';
         case 'code':
+            return 'success-verification';
+        case 'success-verification':
             return null;
         default:
             return null;
