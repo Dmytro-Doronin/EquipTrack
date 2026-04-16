@@ -1,10 +1,10 @@
 @layer components {
     .auth-page {
-        @apply w-full h-[calc(100vh-80px)] flex items-center justify-center px-4;
+        @apply w-full flex justify-center px-4;
     }
 
     .auth-form {
-        @apply w-full max-w-md p-8 bg-white mt-7.5 rounded-xl relative shadow-[0px_10px_15px_0px_#0000001A,0px_4px_6px_0px_#0000001A];
+        @apply w-auto h-auto max-w-md p-8 bg-white mt-7.5 rounded-xl relative shadow-[0px_10px_15px_0px_#0000001A,0px_4px_6px_0px_#0000001A];
     }
 
     .form-header {
