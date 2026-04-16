@@ -1,3 +1,9 @@
+import { VerifyEmailForm } from '@/components/forms/verifyEmailForm/VerifyEmailForm';
+
 export default function VerifyEmailPage() {
-    return <div>VerifyEmailPage</div>;
+    return (
+        <div className="auth-page">
+            <VerifyEmailForm />
+        </div>
+    );
 }

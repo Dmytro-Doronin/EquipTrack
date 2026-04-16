@@ -4,10 +4,18 @@
     }
 
     .auth-form {
-        @apply w-full max-w-[448px] p-[32px] bg-white mt-[30px] rounded-[12px] relative shadow-[0px_10px_15px_0px_#0000001A,0px_4px_6px_0px_#0000001A];
+        @apply w-full max-w-md p-8 bg-white mt-7.5 rounded-xl relative shadow-[0px_10px_15px_0px_#0000001A,0px_4px_6px_0px_#0000001A];
     }
 
     .form-header {
         @apply flex flex-col items-center justify-center;
+    }
+
+    .tf-autofill-light:-webkit-autofill,
+    .tf-autofill-light:-webkit-autofill:hover,
+    .tf-autofill-light:-webkit-autofill:focus,
+    .tf-autofill-light:-webkit-autofill:active {
+        -webkit-text-fill-color: var(--color-main) !important;
+        box-shadow: 0 0 0 30px #fff inset !important;
     }
 }
