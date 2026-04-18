@@ -9,3 +9,7 @@ export type SignInType = {
     email: string;
     password: string;
 };
+
+export type ForgotPasswordType = {
+    email: string;
+};

@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
@@ -49,7 +50,7 @@ export const SignInForm = () => {
                 />
             </div>
 
-            <Button variant="link" className="self-end" type="button">
+            <Button as={Link} href="/forgot-password" variant="link" className="self-end text-main">
                 Forgot password?
             </Button>
 
