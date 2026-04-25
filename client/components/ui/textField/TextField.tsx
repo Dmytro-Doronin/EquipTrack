@@ -93,7 +93,7 @@ const inputStyles = cva(
 const labelStyles = cva('mb-0.5 text-[12px]', {
     variants: {
         variant: {
-            primary: 'text-purple-500',
+            primary: 'text-sub-text',
         },
     },
     defaultVariants: { variant: 'primary' },
