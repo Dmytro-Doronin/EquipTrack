@@ -1,13 +1,24 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { Button } from '@/components/ui/button/Button';
 import { Checkbox } from '@/components/ui/checkbox/Checkbox';
 import { OrganizationAction, organizationOptions } from '@/mock/organizationsOptions';
 
 export const OrganizationsClientPage = () => {
     const [selectedAction, setSelectedAction] = useState<OrganizationAction | null>(null);
+    const router = useRouter();
+
+    const onContinue = () => {
+        if (!selectedAction) {
+            return;
+        }
+
+        router.push(`/onboarding/organizations/${selectedAction}`);
+    };
 
     return (
         <div className="max-w-2xl w-full bg-white rounded-[8px] p-[20px] mt-[30px]">
@@ -15,7 +26,7 @@ export const OrganizationsClientPage = () => {
                 Create or join an organization
             </h1>
 
-            <div className="flex flex-col gap-[16px]">
+            <div className="flex flex-col gap-[16px] mb-[32px]">
                 {organizationOptions.map(({ id, title, description, Icon }) => {
                     const isSelected = selectedAction === id;
                     const inputId = `organization-action-${id}`;
@@ -51,6 +62,10 @@ export const OrganizationsClientPage = () => {
                     );
                 })}
             </div>
+
+            <Button onClick={onContinue} fullWidth>
+                Continue
+            </Button>
         </div>
     );
 };
