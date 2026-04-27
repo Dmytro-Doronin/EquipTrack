@@ -13,6 +13,7 @@ import { twMerge } from 'tailwind-merge';
 
 import ClosedEye from '../../icons/ClosedEye';
 import Eye from '../../icons/Eye';
+
 export type TextFieldProps = {
     onValueChange?: (value: string) => void;
     errorMessage?: string;
@@ -39,8 +40,7 @@ const rootStyles = cva('w-full hover:cursor-text flex flex-col items-center lg:i
 
 const fieldContainerStyles = cva(
     [
-        'relative',
-        'grid grid-cols-[auto_1fr] items-center',
+        'grid items-center',
         'transition',
         'border',
         'focus-within:outline focus-within:outline-1',
@@ -99,14 +99,15 @@ const labelStyles = cva('mb-0.5 text-[12px]', {
     defaultVariants: { variant: 'primary' },
 });
 
-const iconStyles = 'mr-2 transition text-sub-text';
+const iconStyles = 'transition text-sub-text shrink-0';
+
 const showPasswordBtnStyles = cva(
     [
-        'absolute top-1/2 right-[1%] -translate-y-1/2',
-        'w-5 h-5 mr-[25px] p-0',
+        'w-5 h-5 p-0',
         'bg-transparent border-0 outline-none cursor-pointer',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-outline-focus',
         'inline-flex items-center justify-center',
+        'shrink-0',
     ].join(' '),
     {
         variants: {
@@ -139,6 +140,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         const [showPassword, setShowPassword] = useState(false);
         const isPassword = type === 'password';
         const inputRef = useRef<HTMLInputElement>(null);
+
         useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
         const id = useId();
@@ -146,67 +148,81 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
         const state: VariantProps<typeof rootStyles>['state'] = errorMessage ? 'error' : 'default';
 
+        const hasLeftIcon = !!Icon;
+        const hasRightIcon = isPassword;
+
+        const gridCols = hasLeftIcon
+            ? hasRightIcon
+                ? 'grid-cols-[auto_1fr_auto]'
+                : 'grid-cols-[auto_1fr]'
+            : hasRightIcon
+              ? 'grid-cols-[1fr_auto]'
+              : 'grid-cols-[1fr]';
+
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             onChange?.(e);
             onValueChange?.(e.target.value);
         };
 
         return (
-            <>
+            <div
+                className={twMerge(rootStyles({ state }), containerClassName)}
+                onClick={() => inputRef.current?.focus()}
+            >
+                {label && (
+                    <label htmlFor={id} className={labelStyles({ variant })}>
+                        {label}
+                    </label>
+                )}
+
                 <div
-                    className={twMerge(rootStyles({ state }), containerClassName)}
-                    onClick={() => inputRef.current?.focus()}
-                >
-                    {label && (
-                        <label htmlFor={id} className={labelStyles({ variant })}>
-                            {label}
-                        </label>
-                    )}
-                    <div
-                        className={fieldContainerStyles({
+                    className={twMerge(
+                        fieldContainerStyles({
                             variant,
                             layout: variant,
                             state,
-                        })}
-                    >
-                        {Icon && <Icon className={twMerge(iconStyles, iconClassName)} />}
-                        <div className="flex flex-col w-full gap-0.5">
-                            <input
-                                id={id}
-                                ref={inputRef}
-                                className={twMerge(
-                                    'tf-autofill-light',
-                                    inputStyles({ variant, state }),
-                                    className,
-                                )}
-                                placeholder={placeholder}
-                                type={finalType}
-                                onChange={handleChange}
-                                autoComplete={isPassword ? 'off' : undefined}
-                                {...restProps}
-                            />
-                        </div>
+                        }),
+                        gridCols,
+                    )}
+                >
+                    {Icon && <Icon className={twMerge(iconStyles, iconClassName)} />}
 
-                        {isPassword && (
-                            <button
-                                className={showPasswordBtnStyles({ variant })}
-                                type="button"
-                                onClick={() => setShowPassword((prev) => !prev)}
-                                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                            >
-                                {showPassword ? (
-                                    <ClosedEye className="text-sub-text" />
-                                ) : (
-                                    <Eye className="text-sub-text" />
-                                )}
-                            </button>
+                    <input
+                        id={id}
+                        ref={inputRef}
+                        className={twMerge(
+                            'tf-autofill-light',
+                            inputStyles({ variant, state }),
+                            className,
                         )}
-                    </div>
-                    {errorMessage && (
-                        <span className="mt-1 text-sm text-[12px] text-danger">{errorMessage}</span>
+                        placeholder={placeholder}
+                        type={finalType}
+                        onChange={handleChange}
+                        autoComplete={isPassword ? 'off' : undefined}
+                        {...restProps}
+                    />
+
+                    {isPassword && (
+                        <button
+                            className={showPasswordBtnStyles({ variant })}
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            {showPassword ? (
+                                <ClosedEye className="text-sub-text" />
+                            ) : (
+                                <Eye className="text-sub-text" />
+                            )}
+                        </button>
                     )}
                 </div>
-            </>
+
+                {errorMessage && (
+                    <span className="mt-1 text-sm text-[12px] text-danger">{errorMessage}</span>
+                )}
+            </div>
         );
     },
 );
@@ -217,5 +233,6 @@ function getFinalType(type: ComponentProps<'input'>['type'], showPassword: boole
     if (type === 'password' && showPassword) {
         return 'text';
     }
+
     return type;
 }

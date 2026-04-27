@@ -28,44 +28,42 @@ export const CreateOrganizationForm = () => {
     };
 
     return (
-        <div className="auth-page">
-            <form className="auth-form" onSubmit={handleSubmit(onSubmitForm)}>
-                <div className="form-header text-center mb-[32px]">
-                    <h2 className="font-bold text-[24px]">Create your organization</h2>
-                    <p className="text-[14px] text-sub-text mt-[8px]">
-                        Set up your company workspace to start managing assets and employees.
-                    </p>
-                </div>
+        <form className="auth-form" onSubmit={handleSubmit(onSubmitForm)}>
+            <div className="form-header text-center mb-[32px]">
+                <h2 className="font-bold text-[24px]">Create your organization</h2>
+                <p className="text-[14px] text-sub-text mt-[8px]">
+                    Set up your company workspace to start managing assets and employees.
+                </p>
+            </div>
 
-                <div className="flex flex-col gap-5 justify-center mb-5">
-                    <ControlledTextField
-                        placeholder="Ex: Acme Inc."
-                        control={control}
-                        name="organizationName"
-                        label="Organization name"
-                        Icon={UsersIcon}
-                    />
+            <div className="flex flex-col gap-5 justify-center mb-5">
+                <ControlledTextField
+                    placeholder="Ex: Acme Inc."
+                    control={control}
+                    name="organizationName"
+                    label="Organization name"
+                    Icon={UsersIcon}
+                />
 
-                    <ControlledTextField
-                        placeholder="Ex: acme-inc"
-                        control={control}
-                        name="workspaceSlug"
-                        label="Workspace slug"
-                        Icon={Link}
-                    />
+                <ControlledTextField
+                    placeholder="Ex: acme-inc"
+                    control={control}
+                    name="workspaceSlug"
+                    label="Workspace slug"
+                    Icon={Link}
+                />
 
-                    <ControlledTextArea
-                        placeholder="Tell us a bit about your organization"
-                        control={control}
-                        name="description"
-                        label="Optional description"
-                    />
-                </div>
+                <ControlledTextArea
+                    placeholder="Tell us a bit about your organization"
+                    control={control}
+                    name="description"
+                    label="Optional description"
+                />
+            </div>
 
-                <Button className="mb-5" fullWidth>
-                    Create organization
-                </Button>
-            </form>
-        </div>
+            <Button className="mb-5" fullWidth>
+                Create organization
+            </Button>
+        </form>
     );
 };
