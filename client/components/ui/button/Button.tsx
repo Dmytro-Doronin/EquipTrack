@@ -7,7 +7,6 @@ const buttonStyles = cva(
     [
         'font-inherit text-inherit',
         'inline-flex items-center justify-center gap-1',
-        'min-h-[48px] min-w-10 px-[55px] py-3.5',
         'rounded-[8px] text-sm font-medium text-center',
         'border-0 cursor-pointer select-none outline-none',
         'focus-visible:ring-1 focus-visible:ring-offset-1',
@@ -20,12 +19,20 @@ const buttonStyles = cva(
                 link: 'bg-transparent text-light-100 p-0',
             },
             size: {
-                default: 'min-h-10 px-[55px] py-3.5',
+                default: 'min-h-10 min-w-10 px-[55px] py-3.5',
+                compact: 'min-h-10 min-w-0 px-2.5 py-2',
                 auth: 'min-h-12 px-[70px] py-[21px]',
             },
-            fullWidth: { true: 'w-full', false: '' },
+            fullWidth: {
+                true: 'w-full',
+                false: '',
+            },
         },
-        defaultVariants: { variant: 'primary', fullWidth: false },
+        defaultVariants: {
+            variant: 'primary',
+            size: 'default',
+            fullWidth: false,
+        },
     },
 );
 

@@ -28,7 +28,7 @@ const organizations: organizationViewType[] = [
 export const JoinClientPage = () => {
     return (
         <div className="max-w-2xl w-full bg-white rounded-lg p-5 mt-7.5">
-            <div className="grid grid-cols-[400px_auto] gap-2">
+            <div className="grid grid-cols-[400px_auto] gap-2 mb-5">
                 <TextField
                     Icon={Search}
                     containerClassName="flex"
