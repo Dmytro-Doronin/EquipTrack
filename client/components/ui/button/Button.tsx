@@ -16,11 +16,13 @@ const buttonStyles = cva(
         variants: {
             variant: {
                 primary: 'bg-main text-gray-main hover:bg-mail-light',
+                transparent: 'bg-transparent text-gray-main p-0 hover:none',
                 link: 'bg-transparent text-light-100 p-0',
             },
             size: {
                 default: 'min-h-10 min-w-10 px-[55px] py-3.5',
                 compact: 'min-h-10 min-w-0 px-2.5 py-2',
+                transparent: 'h-auto w-auto p-0',
                 auth: 'min-h-12 px-[70px] py-[21px]',
             },
             fullWidth: {
