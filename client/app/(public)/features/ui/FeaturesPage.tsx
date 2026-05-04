@@ -1,10 +1,10 @@
 'use client';
 
-import { FeaturesGrid } from '@/components/features-page/FeaturesGrid';
-import { FeaturesHero } from '@/components/features-page/FeaturesHero';
-import { StatCard } from '@/components/features-page/StatCard';
-import { TestimonialCard } from '@/components/features-page/TestimonialCard';
-import { TrustCard } from '@/components/features-page/TrustCard';
+import { FeaturesGrid } from '@/components/featuresPage/FeaturesGrid';
+import { FeaturesHero } from '@/components/featuresPage/FeaturesHero';
+import { StatCard } from '@/components/featuresPage/StatCard';
+import { TestimonialCard } from '@/components/featuresPage/TestimonialCard';
+import { TrustCard } from '@/components/featuresPage/TrustCard';
 
 export const FeaturesPage = () => {
     return (

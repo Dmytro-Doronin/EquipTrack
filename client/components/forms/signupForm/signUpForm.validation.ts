@@ -1,6 +1,34 @@
 import { z } from 'zod';
 
 import { passwordRules } from '@/components/forms/passwordRules';
+
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export const avatarSchema = z
+    .custom<File | null>((file) => {
+        if (file === null) {
+            return true;
+        }
+
+        return typeof File !== 'undefined' && file instanceof File && file.size > 0;
+    }, 'Invalid avatar')
+    .refine((file) => {
+        if (file === null) {
+            return true;
+        }
+
+        return file.size <= MAX_AVATAR_SIZE;
+    }, 'Avatar must be less than 5MB')
+    .refine((file) => {
+        if (file === null) {
+            return true;
+        }
+
+        return ACCEPTED_IMAGE_TYPES.includes(file.type);
+    }, 'Only JPEG, PNG and WEBP images are allowed');
+
 export const passwordSchema = z
     .string()
     .min(passwordRules.minLength, {

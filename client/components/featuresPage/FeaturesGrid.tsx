@@ -1,4 +1,4 @@
-import { FeatureCard } from '@/components/features-page/FeatureCard';
+import { FeatureCard } from '@/components/featuresPage/FeatureCard';
 import { features } from '@/mock/features';
 
 export const FeaturesGrid = () => {
