@@ -39,7 +39,7 @@ server/__pycache__/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+server/**/__pycache__/
 # testing
 /coverage
 
