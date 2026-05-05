@@ -16,9 +16,10 @@ async def signup(
     db: Session = Depends(get_db),
 ):
     auth_service = AuthService(db)
-    user = auth_service.create_user(form_data)
+
+    data = auth_service.start_signup(form_data)
 
     return {
         "success": True,
-        "data": user,
+        "data": data,
     }
