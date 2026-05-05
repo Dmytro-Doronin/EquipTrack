@@ -34,3 +34,11 @@ class SignUpSchema(BaseModel):
 
 class SignUpFormData(SignUpSchema):
     avatar: UploadFile | None = None
+
+class ConfirmSignupCodeSchema(BaseModel):
+    email: EmailStr
+    code: str = Field(
+        min_length=6,
+        max_length=6,
+        pattern=r"^\d{6}$",
+    )

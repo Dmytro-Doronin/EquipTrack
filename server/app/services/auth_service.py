@@ -1,14 +1,19 @@
+from datetime import UTC, datetime
+
 from sqlalchemy.orm import Session
 
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
     PendingRegistrationCommandRepository,
 )
+from app.repositories.command_repositories.user_commond_repository import (
+    UserCommandRepository,
+)
 from app.repositories.query_repositories.pending_registration_query_repository import (
     PendingRegistrationQueryRepository,
 )
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
-from app.schemas.auth import SignUpFormData
+from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData
 from app.services.email_service import EmailService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
@@ -17,6 +22,7 @@ from app.services.verification_code_service import VerificationCodeService
 class AuthService:
     def __init__(self, db: Session):
         self.user_query_repository = UserQueryRepository(db)
+        self.user_command_repository = UserCommandRepository(db)
 
         self.pending_registration_query_repository = (
             PendingRegistrationQueryRepository(db)
@@ -31,7 +37,7 @@ class AuthService:
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
-            str(form_data.email),
+            form_data.email,
         )
 
         if existing_user is not None:
@@ -51,7 +57,7 @@ class AuthService:
 
         existing_pending_registration = (
             self.pending_registration_query_repository.find_by_email(
-                str(form_data.email),
+                form_data.email,
             )
         )
 
@@ -69,7 +75,7 @@ class AuthService:
             pending_registration = (
                 self.pending_registration_command_repository.create_pending_registration(
                     login=form_data.login,
-                    email=str(form_data.email),
+                    email=form_data.email,
                     password_hash=password_hash,
                     verification_code_hash=verification_code_hash,
                     avatar_url=None,
@@ -84,4 +90,80 @@ class AuthService:
         return {
             "email": pending_registration.email,
             "nextStep": "verify-email",
+        }
+
+    def confirm_signup(self, data: ConfirmSignupCodeSchema) -> dict:
+        pending_registration = (
+            self.pending_registration_query_repository.find_by_email(
+                data.email,
+            )
+        )
+
+        if pending_registration is None:
+            raise_validation_error({
+                "code": ["Invalid or expired verification code"],
+            })
+
+        if pending_registration.expires_at < datetime.now(UTC):
+            self.pending_registration_command_repository.delete_pending_registration(
+                pending_registration,
+            )
+
+            raise_validation_error({
+                "code": ["Verification code has expired"],
+            })
+
+        if pending_registration.attempts >= 5:
+            self.pending_registration_command_repository.delete_pending_registration(
+                pending_registration,
+            )
+
+            raise_validation_error({
+                "code": ["Too many attempts. Please start signup again"],
+            })
+
+        is_code_valid = self.password_service.verify_password(
+            plain_password=data.code,
+            hashed_password=pending_registration.verification_code_hash,
+        )
+
+        if not is_code_valid:
+            self.pending_registration_command_repository.increment_attempts(
+                pending_registration,
+            )
+
+            raise_validation_error({
+                "code": ["Invalid verification code"],
+            })
+
+        existing_user = self.user_query_repository.find_by_email(
+            pending_registration.email,
+        )
+
+        if existing_user is not None:
+            self.pending_registration_command_repository.delete_pending_registration(
+                pending_registration,
+            )
+
+            raise_validation_error({
+                "email": ["Email already exists"],
+            })
+
+        user = self.user_command_repository.create_user(
+            login=pending_registration.login,
+            email=pending_registration.email,
+            password_hash=pending_registration.password_hash,
+            avatar_url=pending_registration.avatar_url,
+        )
+
+        self.pending_registration_command_repository.delete_pending_registration(
+            pending_registration,
+        )
+
+        return {
+            "id": user.id,
+            "login": user.login,
+            "email": user.email,
+            "avatarUrl": user.avatar_url,
+            "createdAt": user.created_at.isoformat(),
         }
