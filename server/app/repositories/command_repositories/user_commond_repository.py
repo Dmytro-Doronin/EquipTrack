@@ -13,12 +13,14 @@ class UserCommandRepository:
         email: str,
         password_hash: str,
         avatar_url: str | None = None,
+        role: str = "user",
     ) -> User:
         user = User(
             login=login,
             email=email,
             password_hash=password_hash,
             avatar_url=avatar_url,
+            role=role,
         )
 
         self.db.add(user)

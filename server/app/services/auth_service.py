@@ -154,6 +154,7 @@ class AuthService:
             email=pending_registration.email,
             password_hash=pending_registration.password_hash,
             avatar_url=pending_registration.avatar_url,
+            role="user",
         )
 
         self.pending_registration_command_repository.delete_pending_registration(
