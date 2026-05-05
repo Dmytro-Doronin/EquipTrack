@@ -29,7 +29,7 @@ class AuthService:
         self.verification_code_service = VerificationCodeService()
         self.email_service = EmailService()
 
-    def start_signup(self, form_data: SignUpFormData) -> dict:
+    async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
             str(form_data.email),
         )
@@ -76,7 +76,7 @@ class AuthService:
                 )
             )
 
-        self.email_service.send_verification_code(
+        await self.email_service.send_verification_code(
             email=pending_registration.email,
             code=verification_code,
         )

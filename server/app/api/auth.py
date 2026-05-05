@@ -10,14 +10,14 @@ from app.services.auth_service import AuthService
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup")
-async def signup(
+@router.post("/signup/start")
+async def start_signup(
     form_data: SignUpFormData = Depends(validate_sign_up_form),
     db: Session = Depends(get_db),
 ):
     auth_service = AuthService(db)
 
-    data = auth_service.start_signup(form_data)
+    data = await auth_service.start_signup(form_data)
 
     return {
         "success": True,
