@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     mail_use_tls: bool = True
     mail_use_ssl: bool = False
 
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    aws_region: str
+    aws_s3_bucket_name: str
+    aws_s3_public_url: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

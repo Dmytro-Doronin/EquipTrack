@@ -1,0 +1,8 @@
+from fastapi import Depends
+from app.db.database import get_db
+from sqlalchemy.orm import Session
+from app.services.auth_service import AuthService
+
+
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    return AuthService(db)

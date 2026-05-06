@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.validators.sign_up_validator import validate_sign_up_form
 from app.db.database import get_db
 from sqlalchemy.orm import Session
-
+from app.dependencies.auth_dependencies import get_auth_service
 from app.services.auth_service import AuthService
 from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData
 from app.validators.confirm_signup_code_validator import (
@@ -15,10 +15,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/signup/start")
 async def start_signup(
     form_data: SignUpFormData = Depends(validate_sign_up_form),
-    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    auth_service = AuthService(db)
-
     data = await auth_service.start_signup(form_data)
 
     return {
@@ -29,10 +27,8 @@ async def start_signup(
 @router.post("/signup/confirm")
 async def confirm_signup(
     data: ConfirmSignupCodeSchema = Depends(validate_confirm_signup_code_form),
-    db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    auth_service = AuthService(db)
-
     user = auth_service.confirm_signup(data)
 
     return {

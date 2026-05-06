@@ -17,7 +17,7 @@ from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData
 from app.services.email_service import EmailService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
-
+from app.services.s3_storage_service import S3StorageService
 
 class AuthService:
     def __init__(self, db: Session):
@@ -30,7 +30,7 @@ class AuthService:
         self.pending_registration_command_repository = (
             PendingRegistrationCommandRepository(db)
         )
-
+        self.storage_service = S3StorageService()
         self.password_service = PasswordService()
         self.verification_code_service = VerificationCodeService()
         self.email_service = EmailService()
@@ -55,6 +55,8 @@ class AuthService:
             verification_code,
         )
 
+        avatar_url = await self.storage_service.upload_avatar(form_data.avatar)
+
         existing_pending_registration = (
             self.pending_registration_query_repository.find_by_email(
                 form_data.email,
@@ -68,7 +70,7 @@ class AuthService:
                     login=form_data.login,
                     password_hash=password_hash,
                     verification_code_hash=verification_code_hash,
-                    avatar_url=None,
+                    avatar_url=avatar_url,
                 )
             )
         else:
@@ -78,7 +80,7 @@ class AuthService:
                     email=form_data.email,
                     password_hash=password_hash,
                     verification_code_hash=verification_code_hash,
-                    avatar_url=None,
+                    avatar_url=avatar_url,
                 )
             )
 
