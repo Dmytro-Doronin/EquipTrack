@@ -42,3 +42,6 @@ class ConfirmSignupCodeSchema(BaseModel):
         max_length=6,
         pattern=r"^\d{6}$",
     )
+
+class ResendCodeSchema(BaseModel):
+    email: EmailStr

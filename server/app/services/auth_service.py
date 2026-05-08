@@ -13,12 +13,12 @@ from app.repositories.query_repositories.pending_registration_query_repository i
     PendingRegistrationQueryRepository,
 )
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
-from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData
+from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema
 from app.services.email_service import EmailService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
 from app.services.s3_storage_service import S3StorageService
-
+from datetime import UTC, datetime, timedelta
 class AuthService:
     def __init__(self, db: Session):
         self.user_query_repository = UserQueryRepository(db)
@@ -46,7 +46,7 @@ class AuthService:
             })
 
         verification_code = self.verification_code_service.generate_code()
-
+        resend_available_at = datetime.now(UTC) + timedelta(seconds=30)
         password_hash = self.password_service.hash_password(
             password=form_data.password,
         )
@@ -71,6 +71,7 @@ class AuthService:
                     password_hash=password_hash,
                     verification_code_hash=verification_code_hash,
                     avatar_url=avatar_url,
+                    resend_available_at=resend_available_at
                 )
             )
         else:
@@ -81,6 +82,7 @@ class AuthService:
                     password_hash=password_hash,
                     verification_code_hash=verification_code_hash,
                     avatar_url=avatar_url,
+                    resend_available_at=resend_available_at
                 )
             )
 
@@ -170,3 +172,55 @@ class AuthService:
             "avatarUrl": user.avatar_url,
             "createdAt": user.created_at.isoformat(),
         }
+
+    async def resend_signup_code(self, data: ResendCodeSchema) -> dict:
+        pending_registration = (
+            self.pending_registration_query_repository.find_by_email(
+                email=data.email,
+            )
+        )
+
+        if pending_registration is None:
+            raise_validation_error({
+                "email": ["Signup session not found"],
+            })
+
+        now = datetime.now(UTC)
+
+        if (
+                pending_registration.resend_available_at is not None
+                and now < pending_registration.resend_available_at
+        ):
+            seconds_left = int(
+                (pending_registration.resend_available_at - now).total_seconds()
+            )
+
+            raise_validation_error({
+                "resend": [f"Please wait {seconds_left} seconds before requesting a new code"],
+            })
+
+        verification_code = self.verification_code_service.generate_code()
+
+        verification_code_hash = self.password_service.hash_password(
+            password=verification_code,
+        )
+
+        pending_registration = (
+            self.pending_registration_command_repository.update_verification_code(
+                pending_registration=pending_registration,
+                verification_code_hash=verification_code_hash,
+                expires_at=now + timedelta(minutes=10),
+                resend_available_at=now + timedelta(seconds=30),
+            )
+        )
+
+        await self.email_service.send_verification_code(
+            email=pending_registration.email,
+            code=verification_code,
+        )
+
+        return {
+            "email": pending_registration.email,
+            "resendAvailableIn": 30,
+        }
+

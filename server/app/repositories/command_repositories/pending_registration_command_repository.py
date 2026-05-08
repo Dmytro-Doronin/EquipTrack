@@ -15,6 +15,7 @@ class PendingRegistrationCommandRepository:
         email: str,
         password_hash: str,
         verification_code_hash: str,
+        resend_available_at: datetime,
         avatar_url: str | None = None,
     ) -> PendingRegistration:
         pending_registration = PendingRegistration(
@@ -25,6 +26,7 @@ class PendingRegistrationCommandRepository:
             verification_code_hash=verification_code_hash,
             attempts=0,
             expires_at=datetime.now(UTC) + timedelta(minutes=10),
+            resend_available_at = resend_available_at
         )
 
         self.db.add(pending_registration)
@@ -39,6 +41,7 @@ class PendingRegistrationCommandRepository:
         login: str,
         password_hash: str,
         verification_code_hash: str,
+        resend_available_at: datetime,
         avatar_url: str | None = None,
     ) -> PendingRegistration:
         pending_registration.login = login
@@ -47,6 +50,7 @@ class PendingRegistrationCommandRepository:
         pending_registration.verification_code_hash = verification_code_hash
         pending_registration.attempts = 0
         pending_registration.expires_at = datetime.now(UTC) + timedelta(minutes=10)
+        pending_registration.resend_available_at = resend_available_at
 
         self.db.commit()
         self.db.refresh(pending_registration)
@@ -70,3 +74,20 @@ class PendingRegistrationCommandRepository:
     ) -> None:
         self.db.delete(pending_registration)
         self.db.commit()
+
+    def update_verification_code(
+            self,
+            pending_registration: PendingRegistration,
+            verification_code_hash: str,
+            expires_at: datetime,
+            resend_available_at: datetime,
+    ) -> PendingRegistration:
+        pending_registration.verification_code_hash = verification_code_hash
+        pending_registration.expires_at = expires_at
+        pending_registration.resend_available_at = resend_available_at
+        pending_registration.attempts = 0
+
+        self.db.commit()
+        self.db.refresh(pending_registration)
+
+        return pending_registration
