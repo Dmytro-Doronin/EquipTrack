@@ -45,7 +45,7 @@ async def resend_code(
         auth_service: AuthService = Depends(get_auth_service),
 ):
 
-    user = auth_service.resend_signup_code(data)
+    user = await auth_service.resend_signup_code(data)
 
     return {
         "success": True,
