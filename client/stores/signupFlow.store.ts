@@ -3,13 +3,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { SignupPageKey } from '@/lib/constants/signupSteps';
+import { SignupStepKey } from '@/lib/constants/signupSteps';
 
 type SignupFlowState = {
     email: string | null;
-    maxAllowedStep: SignupPageKey;
+    maxAllowedStep: SignupStepKey;
     setEmail: (email: string) => void;
-    setMaxAllowedStep: (step: SignupPageKey) => void;
+    setMaxAllowedStep: (step: SignupStepKey) => void;
     resetSignupFlow: () => void;
 };
 

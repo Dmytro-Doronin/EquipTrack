@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 from sqlalchemy.orm import Session
 
 from app.errors.validation_error import raise_validation_error

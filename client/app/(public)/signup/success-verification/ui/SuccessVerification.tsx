@@ -9,6 +9,11 @@ export const SuccessVerification = () => {
     const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
     useSignupStepGuard('success-verification', maxAllowedStep);
     const signupEmail = useSignupFlowStore((state) => state.email);
+    const resetSignupFlow = useSignupFlowStore((state) => state.resetSignupFlow);
+
+    const onContinue = () => {
+        resetSignupFlow();
+    };
 
     return (
         <div className="auth-page">
@@ -25,7 +30,7 @@ export const SuccessVerification = () => {
                     </p>
                 </div>
 
-                <Button className="mb-5" fullWidth>
+                <Button onClick={onContinue} className="mb-5" fullWidth>
                     Continue
                 </Button>
                 <p className="text-[12px] text-sub-text">

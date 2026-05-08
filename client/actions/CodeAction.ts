@@ -1,19 +1,8 @@
 'use server';
 
-export type CodeActionState = {
-    success: boolean;
-    errors?: Record<string, string[]>;
-    message?: string;
-};
+import { actionState, FastApiErrorResponse } from '@/actions/types';
 
-type FastApiErrorResponse = {
-    detail?: {
-        message?: string;
-        errors?: Record<string, string[]>;
-    };
-};
-
-export const codeAction = async (email: string, code: string): Promise<CodeActionState> => {
+export const codeAction = async (email: string, code: string): Promise<actionState> => {
     const formData = new FormData();
 
     formData.append('email', email);
@@ -30,7 +19,7 @@ export const codeAction = async (email: string, code: string): Promise<CodeActio
         return {
             success: false,
             errors: data?.detail?.errors,
-            message: data?.detail?.message ?? 'Code confirmation failed',
+            message: data?.detail?.message ?? 'Code resending failed',
         };
     }
 

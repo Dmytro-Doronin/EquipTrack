@@ -2,8 +2,10 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { codeResendAction } from '@/actions/ResendCodeAction';
 import { VerifyEmailFormValues } from '@/components/forms/verifyEmailForm/verifyEmailForm.types';
 import { verifyEmailSchema } from '@/components/forms/verifyEmailForm/verifyEmailForm.validation';
 import { Button } from '@/components/ui/button/Button';
@@ -13,28 +15,52 @@ import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 import Envelope from '../../icons/Envelope';
 
-export const VerifyEmailForm = () => {
+export const ResendEmailForm = () => {
     const router = useRouter();
     const savedEmail = useSignupFlowStore((state) => state.email);
     const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
-    const setEmail = useSignupFlowStore((state) => state.setEmail);
     const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
+    const [serverError, setServerError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [codeError, setCodeError] = useState<string | null>(null);
+    const finalErrorMessage = serverError ?? codeError;
 
     useSignupStepGuard('code', maxAllowedStep);
 
-    const { control, handleSubmit, reset } = useForm<VerifyEmailFormValues>({
+    const { control, handleSubmit } = useForm<VerifyEmailFormValues>({
         resolver: zodResolver(verifyEmailSchema),
         defaultValues: {
             email: savedEmail ?? '',
         },
     });
 
-    const onSubmitForm = (data: VerifyEmailFormValues) => {
-        setEmail(data.email);
-        setMaxAllowedStep('code');
+    const onSubmitForm = async (data: VerifyEmailFormValues) => {
+        setServerError(null);
 
-        reset();
-        router.push('/signup/code');
+        const formData = new FormData();
+
+        formData.append('email', data.email);
+
+        setIsLoading(true);
+
+        try {
+            const result = await codeResendAction(savedEmail ?? '');
+
+            if (!result.success) {
+                const resendError = result.errors?.resend?.[0];
+
+                setServerError(resendError ?? result.message ?? 'Resend code failed');
+
+                return;
+            }
+
+            setMaxAllowedStep('code');
+            router.push('/signup/code');
+        } catch {
+            setCodeError('Something went wrong. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -55,8 +81,12 @@ export const VerifyEmailForm = () => {
                 />
             </div>
 
-            <Button className="mb-5" fullWidth>
-                Continue
+            {finalErrorMessage && (
+                <span className="mt-1 text-sm text-[12px] text-danger">{finalErrorMessage}</span>
+            )}
+
+            <Button className="mb-5" disabled={isLoading} fullWidth>
+                {isLoading ? 'Continue...' : 'Continue'}
             </Button>
         </form>
     );

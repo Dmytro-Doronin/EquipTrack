@@ -1,12 +1,8 @@
 'use server';
 
-export type SignUpActionState = {
-    success: boolean;
-    errors?: Record<string, string[]>;
-    message?: string;
-};
+import { actionState } from '@/actions/types';
 
-export const signUpAction = async (formData: FormData): Promise<SignUpActionState> => {
+export const signUpAction = async (formData: FormData): Promise<actionState> => {
     const response = await fetch('http://localhost:8000/api/auth/signup/start', {
         method: 'POST',
         body: formData,

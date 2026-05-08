@@ -153,8 +153,6 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
 
             if (!email) {
                 setCodeError('Email is missing. Please start signup again.');
-                // router.replace('/signup');
-                console.log(email);
                 return;
             }
 

@@ -1,9 +1,9 @@
-import { VerifyEmailForm } from '@/components/forms/verifyEmailForm/VerifyEmailForm';
+import { ResendEmailForm } from '@/components/forms/verifyEmailForm/VerifyEmailForm';
 
 export default function VerifyEmailPage() {
     return (
         <div className="auth-page">
-            <VerifyEmailForm />
+            <ResendEmailForm />
         </div>
     );
 }
