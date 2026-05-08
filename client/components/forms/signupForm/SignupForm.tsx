@@ -103,7 +103,7 @@ export const SignupForm = () => {
             }
 
             setEmail(data.email);
-            setMaxAllowedStep('verify-email');
+            setMaxAllowedStep('code');
 
             reset();
             setAvatar(null);

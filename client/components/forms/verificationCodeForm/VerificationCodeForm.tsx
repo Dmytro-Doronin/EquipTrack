@@ -3,6 +3,7 @@
 import type { ClipboardEvent, ComponentPropsWithoutRef, FormEvent, KeyboardEvent } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
+import Link from 'next/link';
 import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -258,6 +259,10 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                 <Button className="mt-5 mb-5" disabled={disabled} fullWidth>
                     Verify
                 </Button>
+
+                <Link href="/signup/resend-email" className="underline">
+                    Resend code
+                </Link>
             </form>
         );
     },

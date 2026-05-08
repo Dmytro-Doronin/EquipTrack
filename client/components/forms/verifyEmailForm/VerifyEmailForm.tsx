@@ -20,7 +20,7 @@ export const VerifyEmailForm = () => {
     const setEmail = useSignupFlowStore((state) => state.setEmail);
     const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
 
-    useSignupStepGuard('verify-email', maxAllowedStep);
+    useSignupStepGuard('code', maxAllowedStep);
 
     const { control, handleSubmit, reset } = useForm<VerifyEmailFormValues>({
         resolver: zodResolver(verifyEmailSchema),

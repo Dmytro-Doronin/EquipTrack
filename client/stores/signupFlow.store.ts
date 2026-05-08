@@ -11,7 +11,7 @@ type SignupFlowState = {
 
 export const useSignupFlowStore = create<SignupFlowState>((set) => ({
     email: null,
-    maxAllowedStep: 'signup',
+    maxAllowedStep: 'code',
     setEmail: (email) => set({ email }),
     setMaxAllowedStep: (step) => set({ maxAllowedStep: step }),
     resetSignupFlow: () =>

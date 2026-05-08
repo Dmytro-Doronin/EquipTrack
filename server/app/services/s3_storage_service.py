@@ -34,7 +34,7 @@ class S3StorageService:
         )
 
         return f"{settings.aws_s3_public_url}/{file_key}"
-        
+
     def _get_file_extension(self, filename: str | None) -> str:
         if filename is None:
             return ""

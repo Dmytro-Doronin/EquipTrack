@@ -37,7 +37,7 @@ class AuthService:
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
-            form_data.email,
+            email=form_data.email,
         )
 
         if existing_user is not None:
@@ -48,18 +48,18 @@ class AuthService:
         verification_code = self.verification_code_service.generate_code()
 
         password_hash = self.password_service.hash_password(
-            form_data.password,
+            password=form_data.password,
         )
 
         verification_code_hash = self.password_service.hash_password(
-            verification_code,
+            password=verification_code,
         )
 
-        avatar_url = await self.storage_service.upload_avatar(form_data.avatar)
+        avatar_url = await self.storage_service.upload_avatar(avatar=form_data.avatar)
 
         existing_pending_registration = (
             self.pending_registration_query_repository.find_by_email(
-                form_data.email,
+                email=form_data.email,
             )
         )
 
