@@ -4,10 +4,14 @@ import type { ClipboardEvent, ComponentPropsWithoutRef, FormEvent, KeyboardEvent
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { codeAction } from '@/actions/CodeAction';
 import { Button } from '@/components/ui/button/Button';
+import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
+import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 type VerificationCodeFormProps = {
     value?: string;
@@ -106,7 +110,13 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
         const [uncontrolledValue, setUncontrolledValue] = useState(() =>
             normalizeCode(defaultValue, length),
         );
-
+        const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
+        const router = useRouter();
+        const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
+        const [codeError, setCodeError] = useState<string | null>(null);
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const finalErrorMessage = errorMessage ?? codeError;
+        const email = useSignupFlowStore((state) => state.email);
         const code = normalizeCode(isControlled ? value : uncontrolledValue, length);
         const digits = useMemo(
             () => Array.from({ length }, (_, index) => code[index] ?? ''),
@@ -115,7 +125,7 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
         const state: VariantProps<typeof rootStyles>['state'] = errorMessage ? 'error' : 'default';
 
         useImperativeHandle(ref, () => inputRefs.current[0] as HTMLInputElement);
-
+        useSignupStepGuard('code', maxAllowedStep);
         const updateCode = (nextDigits: string[]) => {
             const nextValue = normalizeCode(nextDigits.join(''), length);
 
@@ -131,9 +141,48 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
             }
         };
 
-        const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
+
+            setCodeError(null);
+
+            if (code.length !== length) {
+                setCodeError(`Code must be ${length} digits`);
+                return;
+            }
+
+            if (!email) {
+                setCodeError('Email is missing. Please start signup again.');
+                // router.replace('/signup');
+                console.log(email);
+                return;
+            }
+
             onSubmit?.(code);
+
+            setIsSubmitting(true);
+
+            try {
+                const result = await codeAction(email, code);
+
+                if (!result.success) {
+                    const codeMessage = result.errors?.code?.[0];
+                    const formMessage = result.errors?.form?.[0];
+
+                    setCodeError(
+                        codeMessage ?? formMessage ?? result.message ?? 'Code confirmation failed',
+                    );
+
+                    return;
+                }
+
+                setMaxAllowedStep('success-verification');
+                router.push('/signup/success-verification');
+            } catch {
+                setCodeError('Something went wrong. Please try again.');
+            } finally {
+                setIsSubmitting(false);
+            }
         };
 
         const focusInput = (index: number) => {
@@ -206,9 +255,9 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                 onSubmit={handleSubmit}
                 {...restProps}
             >
-                <div className="form-header mb-[32px]">
+                <div className="form-header mb-8">
                     <h2 className="font-bold text-[24px]">Enter verification code</h2>
-                    <p className="text-[14px] text-sub-text mt-[8px]">
+                    <p className="text-[14px] text-sub-text mt-2">
                         Enter the 6-digit code sent to your email
                     </p>
                 </div>
@@ -233,7 +282,7 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                                     inputRefs.current[index] = node;
                                 }}
                                 aria-label={`Verification code digit ${index + 1}`}
-                                aria-invalid={Boolean(errorMessage)}
+                                aria-invalid={Boolean(finalErrorMessage)}
                                 autoFocus={autoFocus && index === 0}
                                 autoComplete={index === 0 ? 'one-time-code' : 'off'}
                                 className={twMerge(codeInputStyles({ state }), inputClassName)}
@@ -251,13 +300,15 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                         ))}
                     </div>
 
-                    {errorMessage && (
-                        <span className="mt-1 text-sm text-[12px] text-danger">{errorMessage}</span>
+                    {finalErrorMessage && (
+                        <span className="mt-1 text-sm text-[12px] text-danger">
+                            {finalErrorMessage}
+                        </span>
                     )}
                 </div>
 
-                <Button className="mt-5 mb-5" disabled={disabled} fullWidth>
-                    Verify
+                <Button className="mt-5 mb-5" disabled={disabled || isSubmitting} fullWidth>
+                    {isSubmitting ? 'Verifying...' : 'Verify'}
                 </Button>
 
                 <Link href="/signup/resend-email" className="underline">

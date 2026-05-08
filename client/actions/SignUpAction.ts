@@ -7,7 +7,7 @@ export type SignUpActionState = {
 };
 
 export const signUpAction = async (formData: FormData): Promise<SignUpActionState> => {
-    const response = await fetch('http://localhost:8000/api/auth/signup', {
+    const response = await fetch('http://localhost:8000/api/auth/signup/start', {
         method: 'POST',
         body: formData,
     });

@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
+import { signUpAction } from '@/actions/SignUpAction';
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
-import { signUpAction } from '@/components/forms/signupForm/SignUpAction';
 import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
 import { avatarSchema, signUpSchema } from '@/components/forms/signupForm/signUpForm.validation';
 import { PasswordStrengthIndicator } from '@/components/passwordStrengthIndicator/PasswordStrengthIndicator';
@@ -107,7 +107,7 @@ export const SignupForm = () => {
 
             reset();
             setAvatar(null);
-            router.push('/signup/verify-email');
+            router.push('/signup/code');
         } finally {
             setIsLoading(false);
         }

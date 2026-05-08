@@ -54,6 +54,11 @@ class PendingRegistration(Base):
         default=lambda: datetime.now(UTC) + timedelta(minutes=10),
     )
 
+    resend_available_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),

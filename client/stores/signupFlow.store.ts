@@ -1,22 +1,36 @@
-import { create } from 'zustand';
+'use client';
 
-import { SignupStepKey } from '@/lib/constants/signupSteps';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+import { SignupPageKey } from '@/lib/constants/signupSteps';
+
 type SignupFlowState = {
     email: string | null;
-    maxAllowedStep: SignupStepKey;
+    maxAllowedStep: SignupPageKey;
     setEmail: (email: string) => void;
-    setMaxAllowedStep: (step: SignupStepKey) => void;
+    setMaxAllowedStep: (step: SignupPageKey) => void;
     resetSignupFlow: () => void;
 };
 
-export const useSignupFlowStore = create<SignupFlowState>((set) => ({
-    email: null,
-    maxAllowedStep: 'code',
-    setEmail: (email) => set({ email }),
-    setMaxAllowedStep: (step) => set({ maxAllowedStep: step }),
-    resetSignupFlow: () =>
-        set({
+export const useSignupFlowStore = create<SignupFlowState>()(
+    persist(
+        (set) => ({
             email: null,
             maxAllowedStep: 'signup',
+
+            setEmail: (email) => set({ email }),
+
+            setMaxAllowedStep: (step) => set({ maxAllowedStep: step }),
+
+            resetSignupFlow: () =>
+                set({
+                    email: null,
+                    maxAllowedStep: 'signup',
+                }),
         }),
-}));
+        {
+            name: 'signup-flow',
+        },
+    ),
+);

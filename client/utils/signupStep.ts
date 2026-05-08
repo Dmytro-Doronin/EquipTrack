@@ -2,9 +2,9 @@ import { SignupPageKey, SignupStepKey } from '@/lib/constants/signupSteps';
 
 export const SIGNUP_STEP_ORDER: Record<SignupPageKey, number> = {
     signup: 0,
-    code: 2,
-    'resend-email': 2,
-    'success-verification': 3,
+    code: 1,
+    'resend-email': 1,
+    'success-verification': 2,
 };
 
 export const isStepAvailable = (step: SignupPageKey, maxAllowedStep: SignupStepKey) => {
