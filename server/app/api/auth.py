@@ -1,15 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 
 from app.validators.sign_up_validator import validate_sign_up_form
-from app.db.database import get_db
-from sqlalchemy.orm import Session
 from app.dependencies.auth_dependencies import get_auth_service
 from app.services.auth_service import AuthService
-from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema
+from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema, SigninSchema
 from app.validators.confirm_signup_code_validator import (
     validate_confirm_signup_code_form,
 )
 from app.validators.resend_code_validator import validate_resend_code_form
+from app.validators.signin_validator import validate_signin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -51,4 +50,37 @@ async def resend_code(
         "success": True,
         "message": "Account created successfully",
         "data": user,
+    }
+
+@router.post("/signin")
+async def login(
+    request: Request,
+    response: Response,
+    data: SigninSchema = Depends(validate_signin),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    client = request.client
+    result = await auth_service.signin(
+        data=data,
+        user_agent=request.headers.get("user-agent"),
+        ip_address=client.host if client is not None else None,
+    )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=result["refreshToken"],
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+        path="/api/auth",
+    )
+
+    return {
+        "success": True,
+        "message": "Signed in successfully",
+        "data": {
+            "user": result["user"],
+            "accessToken": result["accessToken"],
+        },
     }

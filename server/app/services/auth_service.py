@@ -11,12 +11,17 @@ from app.repositories.query_repositories.pending_registration_query_repository i
     PendingRegistrationQueryRepository,
 )
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
-from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema
+from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema, SigninSchema
 from app.services.email_service import EmailService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
 from app.services.s3_storage_service import S3StorageService
 from datetime import UTC, datetime, timedelta
+
+from app.repositories.command_repositories.session_command_repository import SessionCommandRepository
+from app.services.token_service import TokenService
+
+
 class AuthService:
     def __init__(self, db: Session):
         self.user_query_repository = UserQueryRepository(db)
@@ -32,6 +37,10 @@ class AuthService:
         self.password_service = PasswordService()
         self.verification_code_service = VerificationCodeService()
         self.email_service = EmailService()
+
+        self.session_command_repository = SessionCommandRepository(db)
+
+        self.token_service = TokenService()
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
@@ -222,3 +231,62 @@ class AuthService:
             "resendAvailableIn": 30,
         }
 
+    async def signin(
+        self,
+        data: SigninSchema,
+        user_agent: str | None,
+        ip_address: str | None,
+    ) -> dict:
+        user = self.user_query_repository.find_by_email(
+            email=data.email,
+        )
+
+        if user is None:
+            raise_validation_error({
+                "email": ["Invalid email or password"],
+            })
+
+        is_password_valid = self.password_service.verify_password(
+            plain_password=data.password,
+            hashed_password=user.password_hash,
+        )
+
+        if not is_password_valid:
+            raise_validation_error({
+                "password": ["Invalid email or password"],
+            })
+
+        access_token = self.token_service.create_access_token(
+            payload={
+                "sub": str(user.id),
+                "role": user.role,
+            },
+        )
+
+        refresh_token = self.token_service.create_refresh_token()
+
+        refresh_token_hash = self.password_service.hash_password(
+            password=refresh_token,
+        )
+
+        refresh_token_expires_at = datetime.now(UTC) + timedelta(days=30)
+
+        self.session_command_repository.create_session(
+            user_id=user.id,
+            refresh_token_hash=refresh_token_hash,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=refresh_token_expires_at,
+        )
+
+        return {
+            "user": {
+                "id": user.id,
+                "login": user.login,
+                "email": user.email,
+                "avatarUrl": user.avatar_url,
+                "role": user.role,
+            },
+            "accessToken": access_token,
+            "refreshToken": refresh_token,
+        }

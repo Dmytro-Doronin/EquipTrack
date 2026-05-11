@@ -45,3 +45,9 @@ class ConfirmSignupCodeSchema(BaseModel):
 
 class ResendCodeSchema(BaseModel):
     email: EmailStr
+
+class SigninSchema(BaseModel):
+    email: EmailStr
+    password: str = Field(
+        min_length=8,
+    )

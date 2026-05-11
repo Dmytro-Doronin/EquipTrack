@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     aws_s3_bucket_name: str
     aws_s3_public_url: str
 
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    access_token_expires_minutes: int = 15
+    refresh_token_expires_days: int = 30
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
