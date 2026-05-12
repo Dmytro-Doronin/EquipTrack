@@ -26,6 +26,16 @@ def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
     )
 
 
+def clear_refresh_token_cookie(response: Response) -> None:
+    response.delete_cookie(
+        key="refresh_token",
+        path="/api/auth",
+        httponly=True,
+        secure=False,
+        samesite="lax",
+    )
+
+
 @router.post("/signup/start")
 async def start_signup(
     form_data: SignUpFormData = Depends(validate_sign_up_form),
@@ -114,4 +124,19 @@ async def refresh_token(
             "user": result["user"],
             "accessToken": result["accessToken"],
         },
+    }
+
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    await auth_service.logout(refresh_token)
+    clear_refresh_token_cookie(response)
+
+    return {
+        "success": True,
+        "message": "Logged out successfully",
     }

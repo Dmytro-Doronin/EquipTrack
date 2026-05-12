@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
@@ -55,6 +56,21 @@ class AuthService:
             "avatarUrl": user.avatar_url,
             "role": user.role,
         }
+
+    def _get_refresh_token_session_id(self, refresh_token_payload: dict) -> int:
+        raw_session_id = refresh_token_payload.get("sid")
+
+        if not isinstance(raw_session_id, str):
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        try:
+            return int(raw_session_id)
+        except ValueError:
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
@@ -337,19 +353,7 @@ class AuthService:
             })
 
         refresh_token_payload = self.token_service.decode_refresh_token(refresh_token)
-        raw_session_id = refresh_token_payload.get("sid")
-
-        if not isinstance(raw_session_id, str):
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
-
-        try:
-            session_id = int(raw_session_id)
-        except ValueError:
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
+        session_id = self._get_refresh_token_session_id(refresh_token_payload)
 
         user_session = self.session_query_repository.find_active_by_id(session_id)
 
@@ -416,3 +420,36 @@ class AuthService:
             "accessToken": access_token,
             "refreshToken": new_refresh_token,
         }
+
+    async def logout(self, refresh_token: str | None) -> None:
+        if refresh_token is None:
+            return
+
+        try:
+            refresh_token_payload = self.token_service.decode_refresh_token(refresh_token)
+            session_id = self._get_refresh_token_session_id(refresh_token_payload)
+        except HTTPException:
+            return
+
+        user_session = self.session_query_repository.find_active_by_id(session_id)
+
+        if user_session is None:
+            return
+
+        token_user_id = refresh_token_payload.get("sub")
+
+        if not isinstance(token_user_id, str):
+            return
+
+        if token_user_id != str(user_session.user_id):
+            return
+
+        is_refresh_token_valid = self.password_service.verify_password(
+            plain_password=refresh_token,
+            hashed_password=user_session.refresh_token_hash,
+        )
+
+        if not is_refresh_token_valid:
+            return
+
+        self.session_command_repository.revoke_session(user_session)
