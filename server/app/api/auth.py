@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Header, Request, Response
 
 from app.core.config import settings
 from app.validators.sign_up_validator import validate_sign_up_form
@@ -139,4 +139,17 @@ async def logout(
     return {
         "success": True,
         "message": "Logged out successfully",
+    }
+
+
+@router.get("/me")
+async def me(
+    authorization: str | None = Header(default=None),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    user = await auth_service.me(authorization)
+
+    return {
+        "success": True,
+        "data": user,
     }

@@ -72,6 +72,21 @@ class AuthService:
                 "refreshToken": ["Invalid or expired refresh token"],
             })
 
+    def _get_bearer_token(self, authorization: str | None) -> str:
+        if authorization is None:
+            raise_validation_error({
+                "accessToken": ["Access token is required"],
+            })
+
+        token_type, _, token = authorization.partition(" ")
+
+        if token_type.lower() != "bearer" or not token:
+            raise_validation_error({
+                "accessToken": ["Invalid or expired access token"],
+            })
+
+        return token
+
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
             email=form_data.email,
@@ -453,3 +468,29 @@ class AuthService:
             return
 
         self.session_command_repository.revoke_session(user_session)
+
+    async def me(self, authorization: str | None) -> dict:
+        access_token = self._get_bearer_token(authorization)
+        access_token_payload = self.token_service.decode_access_token(access_token)
+        raw_user_id = access_token_payload.get("sub")
+
+        if not isinstance(raw_user_id, str):
+            raise_validation_error({
+                "accessToken": ["Invalid or expired access token"],
+            })
+
+        try:
+            user_id = int(raw_user_id)
+        except ValueError:
+            raise_validation_error({
+                "accessToken": ["Invalid or expired access token"],
+            })
+
+        user = self.user_query_repository.find_by_id(user_id)
+
+        if user is None:
+            raise_validation_error({
+                "accessToken": ["Invalid or expired access token"],
+            })
+
+        return self._format_auth_user(user)
