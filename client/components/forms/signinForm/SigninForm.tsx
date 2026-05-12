@@ -2,8 +2,11 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { signInAction } from '@/actions/SignInAction';
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
 import { Button } from '@/components/ui/button/Button';
@@ -13,7 +16,11 @@ import Envelope from '../../icons/Envelope';
 import Lock from '../../icons/Lock';
 
 export const SignInForm = () => {
-    const { control, handleSubmit, reset } = useForm<SignInFormValues>({
+    const [serverError, setServerError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+
+    const { control, handleSubmit, reset, setError } = useForm<SignInFormValues>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
             email: '',
@@ -21,9 +28,49 @@ export const SignInForm = () => {
         },
     });
 
-    const onSubmitForm = (data: SignInFormValues) => {
-        console.log(data);
-        reset();
+    const onSubmitForm = async (data: SignInFormValues) => {
+        setServerError(null);
+
+        const formData = new FormData();
+
+        formData.append('email', data.email);
+        formData.append('password', data.password);
+
+        setIsLoading(true);
+
+        try {
+            const result = await signInAction(formData);
+
+            if (!result.success) {
+                let hasFieldError = false;
+
+                if (result.errors) {
+                    Object.entries(result.errors).forEach(([field, messages]) => {
+                        if (!messages?.[0]) {
+                            return;
+                        }
+
+                        hasFieldError = true;
+
+                        setError(field as keyof SignInFormValues, {
+                            type: 'server',
+                            message: messages[0],
+                        });
+                    });
+                }
+
+                if (!hasFieldError) {
+                    setServerError(result.message ?? 'Something went wrong');
+                }
+
+                return;
+            }
+
+            reset();
+            router.push('/dashboard');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -54,8 +101,10 @@ export const SignInForm = () => {
                 Forgot password?
             </Button>
 
-            <Button className="mb-5" fullWidth>
-                Sign In
+            {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+
+            <Button className="mb-5" fullWidth disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
         </form>
     );
