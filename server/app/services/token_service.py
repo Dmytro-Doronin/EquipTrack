@@ -2,8 +2,10 @@ from datetime import UTC, datetime, timedelta
 from secrets import token_urlsafe
 
 from jose import jwt
+from jose.exceptions import JWTError
 
 from app.core.config import settings
+from app.errors.validation_error import raise_validation_error
 
 
 class TokenService:
@@ -22,5 +24,38 @@ class TokenService:
             algorithm=settings.jwt_algorithm,
         )
 
-    def create_refresh_token(self) -> str:
-        return token_urlsafe(64)
+    def create_refresh_token(self, payload: dict) -> str:
+        now = datetime.now(UTC)
+
+        token_payload = {
+            **payload,
+            "jti": token_urlsafe(32),
+            "iat": now,
+            "exp": now + timedelta(days=settings.refresh_token_expires_days),
+        }
+
+        return jwt.encode(
+            token_payload,
+            settings.jwt_secret_key,
+            algorithm=settings.jwt_algorithm,
+        )
+
+    def decode_refresh_token(self, token: str) -> dict:
+        try:
+            payload = jwt.decode(
+                token,
+                settings.jwt_secret_key,
+                algorithms=[settings.jwt_algorithm],
+            )
+        except JWTError:
+            self._raise_invalid_refresh_token()
+
+        if payload.get("type") != "refresh":
+            self._raise_invalid_refresh_token()
+
+        return payload
+
+    def _raise_invalid_refresh_token(self) -> None:
+        raise_validation_error({
+            "refreshToken": ["Invalid or expired refresh token"],
+        })

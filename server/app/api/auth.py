@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Request, Response
 
+from app.core.config import settings
 from app.validators.sign_up_validator import validate_sign_up_form
 from app.dependencies.auth_dependencies import get_auth_service
 from app.services.auth_service import AuthService
@@ -11,6 +12,18 @@ from app.validators.resend_code_validator import validate_resend_code_form
 from app.validators.signin_validator import validate_signin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60 * 24 * settings.refresh_token_expires_days,
+        path="/api/auth",
+    )
 
 
 @router.post("/signup/start")
@@ -66,19 +79,37 @@ async def login(
         ip_address=client.host if client is not None else None,
     )
 
-    response.set_cookie(
-        key="refresh_token",
-        value=result["refreshToken"],
-        httponly=True,
-        secure=False,
-        samesite="lax",
-        max_age=60 * 60 * 24 * 30,
-        path="/api/auth",
-    )
+    set_refresh_token_cookie(response, result["refreshToken"])
 
     return {
         "success": True,
         "message": "Signed in successfully",
+        "data": {
+            "user": result["user"],
+            "accessToken": result["accessToken"],
+        },
+    }
+
+
+@router.post("/refresh-token")
+async def refresh_token(
+    request: Request,
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    client = request.client
+    result = await auth_service.refresh_token(
+        refresh_token=refresh_token,
+        user_agent=request.headers.get("user-agent"),
+        ip_address=client.host if client is not None else None,
+    )
+
+    set_refresh_token_cookie(response, result["refreshToken"])
+
+    return {
+        "success": True,
+        "message": "Token refreshed successfully",
         "data": {
             "user": result["user"],
             "accessToken": result["accessToken"],

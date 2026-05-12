@@ -45,6 +45,47 @@ class SessionCommandRepository:
 
         return user_session
 
+    def create_pending_session(
+            self,
+            user_id: int,
+            refresh_token_hash: str,
+            user_agent: str | None,
+            ip_address: str | None,
+            expires_at: datetime,
+    ) -> UserSession:
+        user_session = UserSession(
+            user_id=user_id,
+            refresh_token_hash=refresh_token_hash,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=expires_at,
+        )
+
+        self.db.add(user_session)
+        self.db.flush()
+        self.db.refresh(user_session)
+
+        return user_session
+
+    def rotate_refresh_token(
+            self,
+            user_session: UserSession,
+            refresh_token_hash: str,
+            user_agent: str | None,
+            ip_address: str | None,
+            expires_at: datetime,
+    ) -> UserSession:
+        user_session.refresh_token_hash = refresh_token_hash
+        user_session.user_agent = user_agent
+        user_session.ip_address = ip_address
+        user_session.expires_at = expires_at
+        user_session.last_used_at = datetime.now(UTC)
+
+        self.db.commit()
+        self.db.refresh(user_session)
+
+        return user_session
+
     def delete_session(self, user_session: UserSession) -> None:
         self.db.delete(user_session)
         self.db.commit()

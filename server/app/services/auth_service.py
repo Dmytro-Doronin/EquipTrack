@@ -10,6 +10,9 @@ from app.repositories.command_repositories.user_commond_repository import (
 from app.repositories.query_repositories.pending_registration_query_repository import (
     PendingRegistrationQueryRepository,
 )
+from app.repositories.query_repositories.session_query_repository import (
+    SessionQueryRepository,
+)
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
 from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema, SigninSchema
 from app.services.email_service import EmailService
@@ -19,6 +22,7 @@ from app.services.s3_storage_service import S3StorageService
 from datetime import UTC, datetime, timedelta
 
 from app.repositories.command_repositories.session_command_repository import SessionCommandRepository
+from app.core.config import settings
 from app.services.token_service import TokenService
 
 
@@ -39,8 +43,18 @@ class AuthService:
         self.email_service = EmailService()
 
         self.session_command_repository = SessionCommandRepository(db)
+        self.session_query_repository = SessionQueryRepository(db)
 
         self.token_service = TokenService()
+
+    def _format_auth_user(self, user) -> dict:
+        return {
+            "id": user.id,
+            "login": user.login,
+            "email": user.email,
+            "avatarUrl": user.avatar_url,
+            "role": user.role,
+        }
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
@@ -263,16 +277,42 @@ class AuthService:
             },
         )
 
-        refresh_token = self.token_service.create_refresh_token()
+        refresh_token_expires_at = datetime.now(UTC) + timedelta(
+            days=settings.refresh_token_expires_days,
+        )
+
+        pending_refresh_token_hash = self.password_service.hash_password(
+            password=self.token_service.create_refresh_token(
+                payload={
+                    "sub": str(user.id),
+                    "sid": "pending",
+                    "type": "refresh",
+                },
+            ),
+        )
+
+        user_session = self.session_command_repository.create_pending_session(
+            user_id=user.id,
+            refresh_token_hash=pending_refresh_token_hash,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=refresh_token_expires_at,
+        )
+
+        refresh_token = self.token_service.create_refresh_token(
+            payload={
+                "sub": str(user.id),
+                "sid": str(user_session.id),
+                "type": "refresh",
+            },
+        )
 
         refresh_token_hash = self.password_service.hash_password(
             password=refresh_token,
         )
 
-        refresh_token_expires_at = datetime.now(UTC) + timedelta(days=30)
-
-        self.session_command_repository.create_session(
-            user_id=user.id,
+        self.session_command_repository.rotate_refresh_token(
+            user_session=user_session,
             refresh_token_hash=refresh_token_hash,
             user_agent=user_agent,
             ip_address=ip_address,
@@ -280,13 +320,99 @@ class AuthService:
         )
 
         return {
-            "user": {
-                "id": user.id,
-                "login": user.login,
-                "email": user.email,
-                "avatarUrl": user.avatar_url,
-                "role": user.role,
-            },
+            "user": self._format_auth_user(user),
             "accessToken": access_token,
             "refreshToken": refresh_token,
+        }
+
+    async def refresh_token(
+        self,
+        refresh_token: str | None,
+        user_agent: str | None,
+        ip_address: str | None,
+    ) -> dict:
+        if refresh_token is None:
+            raise_validation_error({
+                "refreshToken": ["Refresh token is required"],
+            })
+
+        refresh_token_payload = self.token_service.decode_refresh_token(refresh_token)
+        raw_session_id = refresh_token_payload.get("sid")
+
+        if not isinstance(raw_session_id, str):
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        try:
+            session_id = int(raw_session_id)
+        except ValueError:
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        user_session = self.session_query_repository.find_active_by_id(session_id)
+
+        if user_session is None:
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        if refresh_token_payload.get("sub") != str(user_session.user_id):
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        is_refresh_token_valid = self.password_service.verify_password(
+            plain_password=refresh_token,
+            hashed_password=user_session.refresh_token_hash,
+        )
+
+        if not is_refresh_token_valid:
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        user = self.user_query_repository.find_by_id(user_session.user_id)
+
+        if user is None:
+            self.session_command_repository.revoke_session(user_session)
+
+            raise_validation_error({
+                "refreshToken": ["Invalid or expired refresh token"],
+            })
+
+        access_token = self.token_service.create_access_token(
+            payload={
+                "sub": str(user.id),
+                "role": user.role,
+            },
+        )
+
+        new_refresh_token = self.token_service.create_refresh_token(
+            payload={
+                "sub": str(user.id),
+                "sid": str(user_session.id),
+                "type": "refresh",
+            },
+        )
+        new_refresh_token_hash = self.password_service.hash_password(
+            password=new_refresh_token,
+        )
+        new_refresh_token_expires_at = datetime.now(UTC) + timedelta(
+            days=settings.refresh_token_expires_days,
+        )
+
+        self.session_command_repository.rotate_refresh_token(
+            user_session=user_session,
+            refresh_token_hash=new_refresh_token_hash,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=new_refresh_token_expires_at,
+        )
+
+        return {
+            "user": self._format_auth_user(user),
+            "accessToken": access_token,
+            "refreshToken": new_refresh_token,
         }
