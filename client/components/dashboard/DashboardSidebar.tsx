@@ -1,11 +1,11 @@
+import { SidebarNavItem } from '@/components/dashboard/SidebarNavItem';
+import { SidebarUserCard } from '@/components/dashboard/SidebarUserCard';
 import CollapseIcon from '@/components/icons/CollapseIcon';
 import DashboardIcon from '@/components/icons/DashboardIcon';
 import EquipmentIcon from '@/components/icons/EquipmentIcon';
 import HelpIcon from '@/components/icons/HelpIcon';
 import SettingsIcon from '@/components/icons/SettingsIcon';
 import UserDashboardIcon from '@/components/icons/UserDashboardIcon';
-import { SidebarNavItem } from '@/components/layouts/dashboard/SidebarNavItem';
-import { SidebarUserCard } from '@/components/layouts/dashboard/SidebarUserCard';
 import { Button } from '@/components/ui/button/Button';
 
 export const DashboardSidebar = () => {

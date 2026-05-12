@@ -2,16 +2,29 @@
 
 import { cookies } from 'next/headers';
 
-import { actionState, FastApiErrorResponse } from '@/actions/types';
+import { FastApiErrorResponse, User } from '@/actions/types';
 import { parseCookieHeader } from '@/utils/parseCookieHeader';
+
+type SignInActionData = {
+    accessToken: string;
+    user: User;
+};
+
+export type SignInActionState = {
+    success: boolean;
+    data?: SignInActionData;
+    errors?: Record<string, string[]>;
+    message?: string;
+};
 
 type SignInSuccessResponse = {
     data?: {
         accessToken?: string;
+        user: User;
     };
 };
 
-export const signInAction = async (formData: FormData): Promise<actionState> => {
+export const signInAction = async (formData: FormData): Promise<SignInActionState> => {
     const response = await fetch('http://localhost:8000/api/auth/signin', {
         method: 'POST',
         body: formData,
@@ -28,6 +41,21 @@ export const signInAction = async (formData: FormData): Promise<actionState> => 
             message: data?.detail?.message ?? 'Sign in failed',
         };
     }
+    const user = data?.data?.user;
+    if (!user) {
+        return {
+            success: false,
+            message: 'User does not exist',
+        };
+    }
+
+    const accessToken = data?.data?.accessToken;
+    if (!accessToken) {
+        return {
+            success: false,
+            message: 'Access token does not exist',
+        };
+    }
 
     const cookieStore = await cookies();
 
@@ -42,5 +70,9 @@ export const signInAction = async (formData: FormData): Promise<actionState> => 
 
     return {
         success: true,
+        data: {
+            accessToken,
+            user,
+        },
     };
 };

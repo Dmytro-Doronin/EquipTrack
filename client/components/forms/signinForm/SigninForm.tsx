@@ -11,6 +11,7 @@ import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useAuthStore } from '@/stores/auth.store';
 
 import Envelope from '../../icons/Envelope';
 import Lock from '../../icons/Lock';
@@ -19,6 +20,8 @@ export const SignInForm = () => {
     const [serverError, setServerError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+    const setUser = useAuthStore((state) => state.setUser);
 
     const { control, handleSubmit, reset, setError } = useForm<SignInFormValues>({
         resolver: zodResolver(signInSchema),
@@ -64,6 +67,14 @@ export const SignInForm = () => {
                 }
 
                 return;
+            }
+
+            if (result.data?.user) {
+                setUser(result.data.user);
+            }
+
+            if (result.data?.accessToken) {
+                setAccessToken(result.data.accessToken);
             }
 
             reset();

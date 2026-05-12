@@ -10,3 +10,11 @@ export type FastApiErrorResponse = {
         errors?: Record<string, string[]>;
     };
 };
+
+export type User = {
+    id: number;
+    login: string;
+    email: string;
+    avatarUrl: string | null;
+    role: string;
+};
