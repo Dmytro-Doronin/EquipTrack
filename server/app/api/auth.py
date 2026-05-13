@@ -1,10 +1,18 @@
-from fastapi import APIRouter, Cookie, Depends, Header, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Request, Response
 
+from app.api.dependencies.auth import CurrentUser
 from app.core.config import settings
 from app.validators.sign_up_validator import validate_sign_up_form
 from app.dependencies.auth_dependencies import get_auth_service
 from app.services.auth_service import AuthService
-from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema, SigninSchema
+from app.schemas.auth import (
+    AuthUserResponse,
+    ConfirmSignupCodeSchema,
+    SignUpFormData,
+    ResendCodeSchema,
+    SigninSchema,
+)
+from app.models.user import User
 from app.validators.confirm_signup_code_validator import (
     validate_confirm_signup_code_form,
 )
@@ -12,6 +20,16 @@ from app.validators.resend_code_validator import validate_resend_code_form
 from app.validators.signin_validator import validate_signin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def format_auth_user(user: User) -> AuthUserResponse:
+    return {
+        "id": user.id,
+        "login": user.login,
+        "email": user.email,
+        "avatarUrl": user.avatar_url,
+        "role": user.role,
+    }
 
 
 def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
@@ -144,12 +162,9 @@ async def logout(
 
 @router.get("/me")
 async def me(
-    authorization: str | None = Header(default=None),
-    auth_service: AuthService = Depends(get_auth_service),
+    current_user: CurrentUser,
 ):
-    user = await auth_service.me(authorization)
-
     return {
         "success": True,
-        "data": user,
+        "data": format_auth_user(current_user),
     }

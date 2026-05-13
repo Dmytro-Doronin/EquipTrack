@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import UTC, datetime
+from secrets import token_urlsafe
+
 from app.models.user_session import UserSession
 
 
@@ -48,14 +50,13 @@ class SessionCommandRepository:
     def create_pending_session(
             self,
             user_id: int,
-            refresh_token_hash: str,
             user_agent: str | None,
             ip_address: str | None,
             expires_at: datetime,
     ) -> UserSession:
         user_session = UserSession(
             user_id=user_id,
-            refresh_token_hash=refresh_token_hash,
+            refresh_token_hash=f"pending:{token_urlsafe(64)}",
             user_agent=user_agent,
             ip_address=ip_address,
             expires_at=expires_at,

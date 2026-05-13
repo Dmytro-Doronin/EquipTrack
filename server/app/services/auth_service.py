@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
@@ -11,11 +10,16 @@ from app.repositories.command_repositories.user_commond_repository import (
 from app.repositories.query_repositories.pending_registration_query_repository import (
     PendingRegistrationQueryRepository,
 )
-from app.repositories.query_repositories.session_query_repository import (
-    SessionQueryRepository,
-)
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
-from app.schemas.auth import ConfirmSignupCodeSchema, SignUpFormData, ResendCodeSchema, SigninSchema
+from app.schemas.auth import (
+    AuthTokenResult,
+    AuthUserResponse,
+    ConfirmSignupCodeSchema,
+    SignUpFormData,
+    ResendCodeSchema,
+    SigninSchema,
+)
+from app.schemas.token import AccessTokenCreatePayload, RefreshTokenCreatePayload
 from app.services.email_service import EmailService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
@@ -24,7 +28,9 @@ from datetime import UTC, datetime, timedelta
 
 from app.repositories.command_repositories.session_command_repository import SessionCommandRepository
 from app.core.config import settings
+from app.services.auth_token_service import AuthTokenService
 from app.services.token_service import TokenService
+from app.models.user import User
 
 
 class AuthService:
@@ -44,11 +50,11 @@ class AuthService:
         self.email_service = EmailService()
 
         self.session_command_repository = SessionCommandRepository(db)
-        self.session_query_repository = SessionQueryRepository(db)
 
+        self.auth_token_service = AuthTokenService(db)
         self.token_service = TokenService()
 
-    def _format_auth_user(self, user) -> dict:
+    def _format_auth_user(self, user: User) -> AuthUserResponse:
         return {
             "id": user.id,
             "login": user.login,
@@ -56,36 +62,6 @@ class AuthService:
             "avatarUrl": user.avatar_url,
             "role": user.role,
         }
-
-    def _get_refresh_token_session_id(self, refresh_token_payload: dict) -> int:
-        raw_session_id = refresh_token_payload.get("sid")
-
-        if not isinstance(raw_session_id, str):
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
-
-        try:
-            return int(raw_session_id)
-        except ValueError:
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
-
-    def _get_bearer_token(self, authorization: str | None) -> str:
-        if authorization is None:
-            raise_validation_error({
-                "accessToken": ["Access token is required"],
-            })
-
-        token_type, _, token = authorization.partition(" ")
-
-        if token_type.lower() != "bearer" or not token:
-            raise_validation_error({
-                "accessToken": ["Invalid or expired access token"],
-            })
-
-        return token
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
         existing_user = self.user_query_repository.find_by_email(
@@ -281,7 +257,7 @@ class AuthService:
         data: SigninSchema,
         user_agent: str | None,
         ip_address: str | None,
-    ) -> dict:
+    ) -> AuthTokenResult:
         user = self.user_query_repository.find_by_email(
             email=data.email,
         )
@@ -302,40 +278,28 @@ class AuthService:
             })
 
         access_token = self.token_service.create_access_token(
-            payload={
-                "sub": str(user.id),
-                "role": user.role,
-            },
+            payload=AccessTokenCreatePayload(
+                sub=str(user.id),
+                role=user.role,
+            ),
         )
 
         refresh_token_expires_at = datetime.now(UTC) + timedelta(
             days=settings.refresh_token_expires_days,
         )
 
-        pending_refresh_token_hash = self.password_service.hash_password(
-            password=self.token_service.create_refresh_token(
-                payload={
-                    "sub": str(user.id),
-                    "sid": "pending",
-                    "type": "refresh",
-                },
-            ),
-        )
-
         user_session = self.session_command_repository.create_pending_session(
             user_id=user.id,
-            refresh_token_hash=pending_refresh_token_hash,
             user_agent=user_agent,
             ip_address=ip_address,
             expires_at=refresh_token_expires_at,
         )
 
         refresh_token = self.token_service.create_refresh_token(
-            payload={
-                "sub": str(user.id),
-                "sid": str(user_session.id),
-                "type": "refresh",
-            },
+            payload=RefreshTokenCreatePayload(
+                sub=str(user.id),
+                sid=str(user_session.id),
+            ),
         )
 
         refresh_token_hash = self.password_service.hash_password(
@@ -361,36 +325,11 @@ class AuthService:
         refresh_token: str | None,
         user_agent: str | None,
         ip_address: str | None,
-    ) -> dict:
-        if refresh_token is None:
-            raise_validation_error({
-                "refreshToken": ["Refresh token is required"],
-            })
-
-        refresh_token_payload = self.token_service.decode_refresh_token(refresh_token)
-        session_id = self._get_refresh_token_session_id(refresh_token_payload)
-
-        user_session = self.session_query_repository.find_active_by_id(session_id)
-
-        if user_session is None:
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
-
-        if refresh_token_payload.get("sub") != str(user_session.user_id):
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
-
-        is_refresh_token_valid = self.password_service.verify_password(
-            plain_password=refresh_token,
-            hashed_password=user_session.refresh_token_hash,
+    ) -> AuthTokenResult:
+        validated_session = self.auth_token_service.validate_refresh_session(
+            refresh_token,
         )
-
-        if not is_refresh_token_valid:
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
+        user_session = validated_session.session
 
         user = self.user_query_repository.find_by_id(user_session.user_id)
 
@@ -402,18 +341,17 @@ class AuthService:
             })
 
         access_token = self.token_service.create_access_token(
-            payload={
-                "sub": str(user.id),
-                "role": user.role,
-            },
+            payload=AccessTokenCreatePayload(
+                sub=str(user.id),
+                role=user.role,
+            ),
         )
 
         new_refresh_token = self.token_service.create_refresh_token(
-            payload={
-                "sub": str(user.id),
-                "sid": str(user_session.id),
-                "type": "refresh",
-            },
+            payload=RefreshTokenCreatePayload(
+                sub=str(user.id),
+                sid=str(user_session.id),
+            ),
         )
         new_refresh_token_hash = self.password_service.hash_password(
             password=new_refresh_token,
@@ -437,60 +375,11 @@ class AuthService:
         }
 
     async def logout(self, refresh_token: str | None) -> None:
-        if refresh_token is None:
-            return
-
-        try:
-            refresh_token_payload = self.token_service.decode_refresh_token(refresh_token)
-            session_id = self._get_refresh_token_session_id(refresh_token_payload)
-        except HTTPException:
-            return
-
-        user_session = self.session_query_repository.find_active_by_id(session_id)
-
-        if user_session is None:
-            return
-
-        token_user_id = refresh_token_payload.get("sub")
-
-        if not isinstance(token_user_id, str):
-            return
-
-        if token_user_id != str(user_session.user_id):
-            return
-
-        is_refresh_token_valid = self.password_service.verify_password(
-            plain_password=refresh_token,
-            hashed_password=user_session.refresh_token_hash,
+        validated_session = self.auth_token_service.try_validate_refresh_session(
+            refresh_token,
         )
 
-        if not is_refresh_token_valid:
+        if validated_session is None:
             return
 
-        self.session_command_repository.revoke_session(user_session)
-
-    async def me(self, authorization: str | None) -> dict:
-        access_token = self._get_bearer_token(authorization)
-        access_token_payload = self.token_service.decode_access_token(access_token)
-        raw_user_id = access_token_payload.get("sub")
-
-        if not isinstance(raw_user_id, str):
-            raise_validation_error({
-                "accessToken": ["Invalid or expired access token"],
-            })
-
-        try:
-            user_id = int(raw_user_id)
-        except ValueError:
-            raise_validation_error({
-                "accessToken": ["Invalid or expired access token"],
-            })
-
-        user = self.user_query_repository.find_by_id(user_id)
-
-        if user is None:
-            raise_validation_error({
-                "accessToken": ["Invalid or expired access token"],
-            })
-
-        return self._format_auth_user(user)
+        self.session_command_repository.revoke_session(validated_session.session)

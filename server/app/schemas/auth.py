@@ -1,5 +1,20 @@
 from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from typing import TypedDict
+
+
+class AuthUserResponse(TypedDict):
+    id: int
+    login: str
+    email: str
+    avatarUrl: str | None
+    role: str
+
+
+class AuthTokenResult(TypedDict):
+    user: AuthUserResponse
+    accessToken: str
+    refreshToken: str
 
 class SignUpSchema(BaseModel):
     login: str = Field(
