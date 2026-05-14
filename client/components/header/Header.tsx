@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { Logo } from '@/components/logo/Logo';
 import { Button } from '@/components/ui/button/Button';
 import { useAuthStore } from '@/stores/auth.store';
@@ -12,10 +14,12 @@ export const Header = () => {
             <div className="h-full w-full flex items-center justify-between container-centered">
                 <Logo />
                 <div className="flex items-center gap-2">
-                    <span>Have an account?</span>
                     {user && <div>{user.login}</div>}
-                    <Button className="text-main font-bold" variant="link">
-                        Login
+                    <Button as={Link} href="/signup">
+                        Registration
+                    </Button>
+                    <Button as={Link} href="/signin" variant="secondary">
+                        Log In
                     </Button>
                 </div>
             </div>

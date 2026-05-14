@@ -1,16 +1,33 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
+import { RefreshResponse } from '@/api/types/auth.types';
 import { useAuthStore } from '@/stores/auth.store';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
 type RetryableAxiosConfig = InternalAxiosRequestConfig & {
     _retry?: boolean;
     skipAuthRefresh?: boolean;
 };
 
-type RefreshResponse = {
-    accessToken: string;
+export const refreshAccessToken = async (): Promise<string | null> => {
+    if (!refreshPromise) {
+        try {
+            const refreshPromise = await refreshClient.post<RefreshResponse>('/auth/refresh-token');
+            const accessToken = refreshPromise.data.data.accessToken;
+
+            useAuthStore.getState().setAccessToken(accessToken);
+
+            return accessToken;
+        } catch {
+            useAuthStore.getState().clearAuth();
+            return null;
+        } finally {
+            refreshPromise = null;
+        }
+    }
+
+    return refreshPromise;
 };
 
 let refreshPromise: Promise<string | null> | null = null;
@@ -39,33 +56,6 @@ apiClient.interceptors.request.use((config) => {
 
     return config;
 });
-
-async function refreshAccessToken(): Promise<string | null> {
-    if (!refreshPromise) {
-        refreshPromise = refreshClient
-            .post<RefreshResponse>('/auth/refresh-token')
-            .then((response) => {
-                const newAccessToken = response.data.accessToken;
-
-                if (!newAccessToken) {
-                    throw new Error('No access token returned from refresh endpoint');
-                }
-
-                useAuthStore.getState().setAccessToken(newAccessToken);
-
-                return newAccessToken;
-            })
-            .catch(() => {
-                useAuthStore.getState().clearAuth();
-                return null;
-            })
-            .finally(() => {
-                refreshPromise = null;
-            });
-    }
-
-    return refreshPromise;
-}
 
 apiClient.interceptors.response.use(
     (response) => response,

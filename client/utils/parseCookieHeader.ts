@@ -16,7 +16,7 @@ type ParsedCookie = {
 export const parseCookieHeader = (setCookieHeader: string[]): ParsedCookie[] => {
     const cookies: ParsedCookie[] = [];
 
-    for (const raw in setCookieHeader) {
+    for (const raw of setCookieHeader) {
         const parts = raw.split(';').map((part) => part.trim());
         const [name, value] = parts[0].split('=');
 

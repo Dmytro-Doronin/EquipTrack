@@ -5,7 +5,7 @@ import { PropsWithChildren, useEffect, useRef } from 'react';
 import { getMe } from '@/api/auth/auth';
 import { useAuthStore } from '@/stores/auth.store';
 
-export function AuthBootstrap({ children }: PropsWithChildren) {
+export const AuthBootstrap = ({ children }: PropsWithChildren) => {
     const hasRun = useRef(false);
     const status = useAuthStore((state) => state.status);
 
@@ -37,4 +37,4 @@ export function AuthBootstrap({ children }: PropsWithChildren) {
     }
 
     return children;
-}
+};

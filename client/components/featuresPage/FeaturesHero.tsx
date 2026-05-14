@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/button/Button';
+
 export const FeaturesHero = () => {
     return (
         <section
@@ -26,18 +28,12 @@ export const FeaturesHero = () => {
                     </p>
 
                     <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                        <Link
-                            href="/signup"
-                            className="inline-flex h-14 min-w-[144px] items-center justify-center rounded-[8px] bg-main px-8 text-sm font-bold text-white shadow-[0_14px_28px_rgba(31,41,55,0.18)] transition hover:bg-mail-light focus-visible:ring-2 focus-visible:ring-main focus-visible:ring-offset-2 focus-visible:outline-none"
-                        >
-                            Register
-                        </Link>
-                        <Link
-                            href="/signin"
-                            className="inline-flex h-14 min-w-[144px] items-center justify-center rounded-[8px] border border-gray-main bg-white/85 px-8 text-sm font-medium text-main transition hover:bg-round focus-visible:ring-2 focus-visible:ring-main focus-visible:ring-offset-2 focus-visible:outline-none"
-                        >
+                        <Button as={Link} href="/signup">
+                            Registration
+                        </Button>
+                        <Button as={Link} href="/signin" variant="secondary">
                             Log In
-                        </Link>
+                        </Button>
                     </div>
                 </div>
             </div>

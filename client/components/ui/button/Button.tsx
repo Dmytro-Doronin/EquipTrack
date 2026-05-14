@@ -16,6 +16,8 @@ const buttonStyles = cva(
         variants: {
             variant: {
                 primary: 'bg-main text-gray-main hover:bg-mail-light',
+                secondary:
+                    'className="inline-flex min-w-[144px] items-center justify-center rounded-[8px] border border-gray-main bg-white/85 px-8 text-sm font-medium text-main transition hover:bg-round focus-visible:ring-2 focus-visible:ring-main focus-visible:ring-offset-2 focus-visible:outline-none"',
                 transparent: 'bg-transparent text-gray-main p-0 hover:none',
                 link: 'bg-transparent text-light-100 p-0',
             },

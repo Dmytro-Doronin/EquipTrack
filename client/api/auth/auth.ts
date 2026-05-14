@@ -1,7 +1,7 @@
 import { apiClient } from '@/api/apiClient';
-import { AuthUser } from '@/stores/auth.store';
+import { GetMeResponse } from '@/api/types/auth.types';
 
-export async function getMe() {
-    const response = await apiClient.get<AuthUser>('/auth/me');
-    return response.data;
-}
+export const getMe = async () => {
+    const response = await apiClient.get<GetMeResponse>('/auth/me');
+    return response.data.data;
+};
