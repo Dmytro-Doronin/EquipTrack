@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
@@ -336,9 +337,12 @@ class AuthService:
         if user is None:
             self.session_command_repository.revoke_session(user_session)
 
-            raise_validation_error({
-                "refreshToken": ["Invalid or expired refresh token"],
-            })
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "message": "Invalid or expired refresh token",
+                },
+            )
 
         access_token = self.token_service.create_access_token(
             payload=AccessTokenCreatePayload(
