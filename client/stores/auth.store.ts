@@ -1,20 +1,16 @@
 import { create } from 'zustand';
 
-export type AuthUser = {
-    id: number;
-    email: string;
-    login: string;
-};
+import { User } from '@/actions/types';
 
 type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated';
 
 type AuthStore = {
-    user: AuthUser | null;
+    user: User | null;
     accessToken: string | null;
     status: AuthStatus;
 
-    setAuth: (data: { user: AuthUser; accessToken: string }) => void;
-    setUser: (user: AuthUser) => void;
+    setAuth: (data: { user: User; accessToken: string }) => void;
+    setUser: (user: User) => void;
     setAccessToken: (accessToken: string) => void;
     clearAuth: () => void;
     setStatus: (status: AuthStatus) => void;
