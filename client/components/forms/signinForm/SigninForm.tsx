@@ -13,6 +13,7 @@ import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useAuthStore } from '@/stores/auth.store';
+import { setAuthHint } from '@/utils/authHint';
 
 import Envelope from '../../icons/Envelope';
 import Lock from '../../icons/Lock';
@@ -66,12 +67,11 @@ export const SignInForm = () => {
                 return;
             }
 
-            if (result.data?.user) {
+            if (result.data?.user && result.data?.accessToken) {
                 setUser(result.data.user);
-            }
-
-            if (result.data?.accessToken) {
                 setAccessToken(result.data.accessToken);
+
+                setAuthHint();
             }
 
             reset();

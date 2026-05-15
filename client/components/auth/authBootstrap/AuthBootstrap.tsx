@@ -2,9 +2,10 @@
 
 import { PropsWithChildren, useEffect, useRef } from 'react';
 
-import { getMe } from '@/api/auth/auth';
+import { refreshSession } from '@/api/apiClient';
 import { Loader } from '@/components/loader/Loader';
 import { useAuthStore } from '@/stores/auth.store';
+import { hasAuthHint } from '@/utils/authHint';
 
 export const AuthBootstrap = ({ children }: PropsWithChildren) => {
     const hasRun = useRef(false);
@@ -18,14 +19,18 @@ export const AuthBootstrap = ({ children }: PropsWithChildren) => {
         hasRun.current = true;
 
         async function bootstrapAuth() {
-            const { setStatus, setUser, clearAuth } = useAuthStore.getState();
+            const { setStatus, clearAuth } = useAuthStore.getState();
+
+            if (!hasAuthHint()) {
+                clearAuth();
+                return;
+            }
 
             setStatus('checking');
 
-            try {
-                const user = await getMe();
-                setUser(user);
-            } catch {
+            const session = await refreshSession();
+
+            if (!session) {
                 clearAuth();
             }
         }
@@ -35,7 +40,7 @@ export const AuthBootstrap = ({ children }: PropsWithChildren) => {
 
     if (status === 'checking') {
         return (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
                 <Loader />
             </div>
         );

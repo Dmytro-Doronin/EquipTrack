@@ -1,7 +1,8 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
-import { RefreshResponse } from '@/api/types/auth.types';
+import { User } from '@/actions/types';
 import { useAuthStore } from '@/stores/auth.store';
+import { clearAuthHint } from '@/utils/authHint';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
@@ -10,29 +11,20 @@ type RetryableAxiosConfig = InternalAxiosRequestConfig & {
     skipAuthRefresh?: boolean;
 };
 
-export const refreshAccessToken = async (): Promise<string | null> => {
-    if (!refreshPromise) {
-        try {
-            const refreshPromise = await refreshClient.post<RefreshResponse>('/auth/refresh-token');
-            const accessToken = refreshPromise.data.data.accessToken;
-
-            useAuthStore.getState().setAccessToken(accessToken);
-
-            return accessToken;
-        } catch {
-            useAuthStore.getState().clearAuth();
-            return null;
-        } finally {
-            refreshPromise = null;
-        }
-    }
-
-    return refreshPromise;
+type AuthSession = {
+    user: User;
+    accessToken: string;
 };
 
-let refreshPromise: Promise<string | null> | null = null;
+type RefreshResponse = {
+    success: boolean;
+    message: string;
+    data: AuthSession;
+};
 
-const apiClient: AxiosInstance = axios.create({
+let refreshPromise: Promise<AuthSession | null> | null = null;
+
+export const apiClient: AxiosInstance = axios.create({
     baseURL: API_URL,
     withCredentials: true,
     timeout: 10000,
@@ -45,7 +37,37 @@ const refreshClient = axios.create({
     baseURL: API_URL,
     withCredentials: true,
     timeout: 10000,
+    headers: {
+        Accept: 'application/json',
+    },
 });
+
+export async function refreshSession(): Promise<AuthSession | null> {
+    if (!refreshPromise) {
+        refreshPromise = refreshClient
+            .post<RefreshResponse>('/auth/refresh-token')
+            .then((response) => {
+                const session = response.data.data;
+
+                useAuthStore.getState().setAuth({
+                    user: session.user,
+                    accessToken: session.accessToken,
+                });
+
+                return session;
+            })
+            .catch(() => {
+                useAuthStore.getState().clearAuth();
+                clearAuthHint();
+                return null;
+            })
+            .finally(() => {
+                refreshPromise = null;
+            });
+    }
+
+    return refreshPromise;
+}
 
 apiClient.interceptors.request.use((config) => {
     const accessToken = useAuthStore.getState().accessToken;
@@ -59,7 +81,6 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
     (response) => response,
-
     async (error: AxiosError) => {
         const originalRequest = error.config as RetryableAxiosConfig | undefined;
 
@@ -67,10 +88,10 @@ apiClient.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        const status = error.response?.status;
-
         const shouldTryRefresh =
-            status === 401 && !originalRequest._retry && !originalRequest.skipAuthRefresh;
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.skipAuthRefresh;
 
         if (!shouldTryRefresh) {
             return Promise.reject(error);
@@ -78,16 +99,14 @@ apiClient.interceptors.response.use(
 
         originalRequest._retry = true;
 
-        const newAccessToken = await refreshAccessToken();
+        const session = await refreshSession();
 
-        if (!newAccessToken) {
+        if (!session) {
             return Promise.reject(error);
         }
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${session.accessToken}`;
 
         return apiClient(originalRequest);
     },
 );
-
-export { apiClient };

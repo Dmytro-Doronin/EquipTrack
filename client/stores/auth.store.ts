@@ -19,7 +19,7 @@ type AuthStore = {
 export const useAuthStore = create<AuthStore>((set) => ({
     user: null,
     accessToken: null,
-    status: 'checking',
+    status: 'unauthenticated',
 
     setAuth: ({ user, accessToken }) => {
         set({
