@@ -5,3 +5,7 @@ export const getMe = async () => {
     const response = await apiClient.get<GetMeResponse>('/auth/me');
     return response.data.data;
 };
+
+export const logoutApi = async () => {
+    return await apiClient.post('/api/auth/logout');
+};

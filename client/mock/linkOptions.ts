@@ -3,12 +3,15 @@ import { LinkOption } from '@/types/linkOptionTypes';
 
 export const linkOptions: LinkOption[] = [
     {
-        id: '1',
+        id: 'dashboard',
         title: 'Dashboard',
-        link: privateRoutesVariables.dashboard,
+        type: 'link',
+        href: privateRoutesVariables.dashboard,
     },
     {
-        id: '2',
+        id: 'logout',
         title: 'Log out',
+        type: 'action',
+        action: 'logout',
     },
 ];
