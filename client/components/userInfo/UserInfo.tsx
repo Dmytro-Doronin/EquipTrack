@@ -26,9 +26,9 @@ export const UserInfo = ({ user, variant }: UserInfoProps) => {
     const { avatarUrl, email, login } = user;
     return (
         <>
-            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-gray-200 text-sm font-bold text-dark">
+            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-gray-200 text-sm font-bold text-dark overflow-hidden">
                 {avatarUrl ? (
-                    <Image src={avatarUrl ?? ''} alt="avatar" />
+                    <Image src={avatarUrl ?? ''} alt="avatar" width="40" height="40" />
                 ) : (
                     <span>{login.slice(0, 1)}</span>
                 )}

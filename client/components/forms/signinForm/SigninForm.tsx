@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { signInAction } from '@/actions/SignInAction';
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
+import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useAuthStore } from '@/stores/auth.store';
@@ -23,7 +24,7 @@ export const SignInForm = () => {
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
     const setUser = useAuthStore((state) => state.setUser);
 
-    const { control, handleSubmit, reset, setError } = useForm<SignInFormValues>({
+    const { control, handleSubmit, reset } = useForm<SignInFormValues>({
         resolver: zodResolver(signInSchema),
         defaultValues: {
             email: '',
@@ -48,17 +49,13 @@ export const SignInForm = () => {
                 let hasFieldError = false;
 
                 if (result.errors) {
-                    Object.entries(result.errors).forEach(([field, messages]) => {
+                    Object.entries(result.errors).forEach(([messages]) => {
                         if (!messages?.[0]) {
                             return;
                         }
 
                         hasFieldError = true;
-
-                        setError(field as keyof SignInFormValues, {
-                            type: 'server',
-                            message: messages[0],
-                        });
+                        setServerError(messages[0]);
                     });
                 }
 
@@ -117,6 +114,8 @@ export const SignInForm = () => {
             <Button className="mb-5" fullWidth disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            {isLoading && <Loader />}
         </form>
     );
 };

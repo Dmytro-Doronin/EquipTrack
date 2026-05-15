@@ -7,5 +7,5 @@ export const getMe = async () => {
 };
 
 export const logoutApi = async () => {
-    return await apiClient.post('/api/auth/logout');
+    return await apiClient.post('/auth/logout');
 };

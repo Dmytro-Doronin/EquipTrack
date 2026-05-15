@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { codeResendAction } from '@/actions/ResendCodeAction';
 import { VerifyEmailFormValues } from '@/components/forms/verifyEmailForm/verifyEmailForm.types';
 import { verifyEmailSchema } from '@/components/forms/verifyEmailForm/verifyEmailForm.validation';
+import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
@@ -88,6 +89,7 @@ export const ResendEmailForm = () => {
             <Button className="mb-5" disabled={isLoading} fullWidth>
                 {isLoading ? 'Continue...' : 'Continue'}
             </Button>
+            {isLoading && <Loader />}
         </form>
     );
 };

@@ -1,4 +1,6 @@
 'use client';
+import { useRouter } from 'next/navigation';
+
 import Checked from '@/components/icons/Checked';
 import Envelope from '@/components/icons/Envelope';
 import { Button } from '@/components/ui/button/Button';
@@ -10,9 +12,10 @@ export const SuccessVerification = () => {
     useSignupStepGuard('success-verification', maxAllowedStep);
     const signupEmail = useSignupFlowStore((state) => state.email);
     const resetSignupFlow = useSignupFlowStore((state) => state.resetSignupFlow);
-
+    const router = useRouter();
     const onContinue = () => {
         resetSignupFlow();
+        router.push('/signin');
     };
 
     return (

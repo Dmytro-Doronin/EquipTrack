@@ -29,7 +29,7 @@ export const SignupForm = () => {
     const setEmail = useSignupFlowStore((state) => state.setEmail);
     const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
 
-    const { control, handleSubmit, reset, setError } = useForm<SignUpFormFormValues>({
+    const { control, handleSubmit, reset } = useForm<SignUpFormFormValues>({
         resolver: zodResolver(signUpSchema),
         defaultValues: {
             login: '',
@@ -88,10 +88,8 @@ export const SignupForm = () => {
                             return;
                         }
 
-                        setError(field as keyof SignUpFormFormValues, {
-                            type: 'server',
-                            message: messages[0],
-                        });
+                        hasFieldError = true;
+                        setServerError(messages[0]);
                     });
                 }
 

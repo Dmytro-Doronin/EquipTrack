@@ -9,6 +9,7 @@ import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } fro
 import { twMerge } from 'tailwind-merge';
 
 import { codeAction } from '@/actions/CodeAction';
+import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
@@ -312,6 +313,8 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                 <Link href="/signup/resend-email" className="underline">
                     Resend code
                 </Link>
+
+                {isSubmitting && <Loader />}
             </form>
         );
     },

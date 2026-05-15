@@ -3,6 +3,7 @@
 import { PropsWithChildren, useEffect, useRef } from 'react';
 
 import { getMe } from '@/api/auth/auth';
+import { Loader } from '@/components/loader/Loader';
 import { useAuthStore } from '@/stores/auth.store';
 
 export const AuthBootstrap = ({ children }: PropsWithChildren) => {
@@ -33,7 +34,11 @@ export const AuthBootstrap = ({ children }: PropsWithChildren) => {
     }, []);
 
     if (status === 'checking') {
-        return <div>Loading...</div>;
+        return (
+            <div className="w-full h-full flex items-center justify-center">
+                <Loader />
+            </div>
+        );
     }
 
     return children;

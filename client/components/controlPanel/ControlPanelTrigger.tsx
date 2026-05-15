@@ -4,7 +4,8 @@ import { User } from '@/actions/types';
 import { DropdownMenu } from '@/components/controlPanel/DropdownMenu';
 import { Button } from '@/components/ui/button/Button';
 import { UserInfo } from '@/components/userInfo/UserInfo';
-import { LinkOption } from '@/types/linkOptionTypes';
+import { useModalStore } from '@/stores/modal.store';
+import { DropdownAction, LinkOption } from '@/types/linkOptionTypes';
 
 type ControlPanelTriggerProps = {
     options: LinkOption[];
@@ -16,8 +17,21 @@ export const ControlPanelTrigger = ({ options, user }: ControlPanelTriggerProps)
     const onSetOpenMenu = (open: boolean) => {
         setOpenMenu(open);
     };
+    const openModal = useModalStore((s) => s.open);
+
+    const handleAction = (action: DropdownAction) => {
+        if (action === 'logout') {
+            openModal('logout');
+        }
+    };
+
     return (
-        <DropdownMenu openMenu={openMenu} options={options} setOpenMenu={onSetOpenMenu}>
+        <DropdownMenu
+            openMenu={openMenu}
+            options={options}
+            setOpenMenu={onSetOpenMenu}
+            onAction={handleAction}
+        >
             <Button
                 variant="transparent"
                 className="flex items-center gap-3 p-0"
