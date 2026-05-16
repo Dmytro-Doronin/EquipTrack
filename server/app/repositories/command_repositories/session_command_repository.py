@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import UTC, datetime
 from secrets import token_urlsafe
+from sqlalchemy import update
 
 from app.models.user_session import UserSession
 
@@ -89,4 +90,17 @@ class SessionCommandRepository:
 
     def delete_session(self, user_session: UserSession) -> None:
         self.db.delete(user_session)
+        self.db.commit()
+
+    def revoke_active_sessions_for_user(self, user_id: int) -> None:
+        stmt = (
+            update(UserSession)
+            .where(
+                UserSession.user_id == user_id,
+                UserSession.revoked_at.is_(None),
+            )
+            .values(revoked_at=datetime.now(UTC))
+        )
+
+        self.db.execute(stmt)
         self.db.commit()

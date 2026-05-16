@@ -28,3 +28,15 @@ class UserCommandRepository:
         self.db.refresh(user)
 
         return user
+
+    def update_password_hash(
+        self,
+        user: User,
+        password_hash: str,
+    ) -> User:
+        user.password_hash = password_hash
+
+        self.db.commit()
+        self.db.refresh(user)
+
+        return user
