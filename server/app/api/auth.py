@@ -3,14 +3,20 @@ from fastapi import APIRouter, Cookie, Depends, Request, Response, HTTPException
 from app.api.dependencies.auth import CurrentUser
 from app.core.config import settings
 from app.validators.sign_up_validator import validate_sign_up_form
-from app.dependencies.auth_dependencies import get_auth_service
+from app.dependencies.auth_dependencies import (
+    get_auth_service,
+    get_password_recovery_service,
+)
 from app.services.auth_service import AuthService
+from app.services.password_recovery_service import PasswordRecoveryService
 from app.schemas.auth import (
     AuthUserResponse,
     ConfirmSignupCodeSchema,
     SignUpFormData,
     EmailSchema,
     SigninSchema,
+    PasswordRecoveryConfirmSchema,
+    PasswordRecoveryStartSchema,
 )
 from app.models.user import User
 from app.validators.confirm_signup_code_validator import (
@@ -18,6 +24,10 @@ from app.validators.confirm_signup_code_validator import (
 )
 from app.validators.resend_code_validator import validate_email_address
 from app.validators.signin_validator import validate_signin
+from app.validators.password_recovery_validator import (
+    validate_password_recovery_confirm_form,
+    validate_password_recovery_start_form,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -181,11 +191,50 @@ async def me(
 @router.post("/request-reset-password")
 async def request_password_reset(
     data: EmailSchema = Depends(validate_email_address),
-    auth_service: AuthService = Depends(get_auth_service),
+    password_recovery_service: PasswordRecoveryService = Depends(
+        get_password_recovery_service,
+    ),
 ):
 
-    await auth_service.request_reset_password(data)
+    await password_recovery_service.start_password_recovery(data.email)
     return {
         "success": True,
-        "message": "Password reset requested",
+        "message": "If this email exists, password recovery instructions were sent",
+    }
+
+
+@router.post("/password-recovery/start")
+async def start_password_recovery(
+    data: PasswordRecoveryStartSchema = Depends(
+        validate_password_recovery_start_form,
+    ),
+    password_recovery_service: PasswordRecoveryService = Depends(
+        get_password_recovery_service,
+    ),
+):
+    await password_recovery_service.start_password_recovery(data.email)
+
+    return {
+        "success": True,
+        "message": "If this email exists, password recovery instructions were sent",
+    }
+
+
+@router.post("/password-recovery/confirm")
+async def confirm_password_recovery(
+    data: PasswordRecoveryConfirmSchema = Depends(
+        validate_password_recovery_confirm_form,
+    ),
+    password_recovery_service: PasswordRecoveryService = Depends(
+        get_password_recovery_service,
+    ),
+):
+    password_recovery_service.confirm_password_recovery(
+        token=data.token,
+        password=data.password,
+    )
+
+    return {
+        "success": True,
+        "message": "Password changed successfully",
     }

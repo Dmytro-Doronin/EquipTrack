@@ -23,13 +23,14 @@ class PasswordResetTokenCommandRepository:
         )
 
         self.db.add(reset_token)
-        self.db.flush()
+        self.db.commit()
+        self.db.refresh(reset_token)
 
         return reset_token
 
     def mark_as_used(self, reset_token: PasswordResetToken) -> None:
         reset_token.used_at = datetime.now(UTC)
-        self.db.flush()
+        self.db.commit()
 
     def revoke_active_tokens_for_user(self, user_id: int) -> None:
         stmt = (
@@ -42,7 +43,7 @@ class PasswordResetTokenCommandRepository:
         )
 
         self.db.execute(stmt)
-        self.db.flush()
+        self.db.commit()
 
     def delete_expired_tokens(self) -> None:
         stmt = delete(PasswordResetToken).where(
@@ -50,4 +51,4 @@ class PasswordResetTokenCommandRepository:
         )
 
         self.db.execute(stmt)
-        self.db.flush()
+        self.db.commit()
