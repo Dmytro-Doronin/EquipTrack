@@ -9,14 +9,14 @@ from app.schemas.auth import (
     AuthUserResponse,
     ConfirmSignupCodeSchema,
     SignUpFormData,
-    ResendCodeSchema,
+    EmailSchema,
     SigninSchema,
 )
 from app.models.user import User
 from app.validators.confirm_signup_code_validator import (
     validate_confirm_signup_code_form,
 )
-from app.validators.resend_code_validator import validate_resend_code_form
+from app.validators.resend_code_validator import validate_email_address
 from app.validators.signin_validator import validate_signin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -81,7 +81,7 @@ async def confirm_signup(
 
 @router.post("/signup/resend-code")
 async def resend_code(
-        data: ResendCodeSchema = Depends(validate_resend_code_form),
+        data: EmailSchema = Depends(validate_email_address),
         auth_service: AuthService = Depends(get_auth_service),
 ):
 
@@ -176,4 +176,16 @@ async def me(
     return {
         "success": True,
         "data": format_auth_user(current_user),
+    }
+
+@router.post("/request-reset-password")
+async def request_password_reset(
+    data: EmailSchema = Depends(validate_email_address),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+
+    await auth_service.request_reset_password(data)
+    return {
+        "success": True,
+        "message": "Password reset requested",
     }

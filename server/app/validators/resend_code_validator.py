@@ -3,14 +3,14 @@ from pydantic import ValidationError
 
 from app.errors.format_validation_errors import format_pydantic_errors
 from app.errors.validation_error import raise_validation_error
-from app.schemas.auth import ResendCodeSchema
+from app.schemas.auth import EmailSchema
 
 
-async def validate_resend_code_form(
+async def validate_email_address(
     email: str = Form(...),
-) -> ResendCodeSchema:
+) -> EmailSchema:
     try:
-        return ResendCodeSchema(
+        return EmailSchema(
             email=email,
         )
     except ValidationError as error:

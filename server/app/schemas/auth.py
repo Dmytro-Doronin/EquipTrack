@@ -58,7 +58,7 @@ class ConfirmSignupCodeSchema(BaseModel):
         pattern=r"^\d{6}$",
     )
 
-class ResendCodeSchema(BaseModel):
+class EmailSchema(BaseModel):
     email: EmailStr
 
 class SigninSchema(BaseModel):

@@ -105,7 +105,12 @@ export const SignInForm = () => {
                 />
             </div>
 
-            <Button as={Link} href="/forgot-password" variant="link" className="self-end text-main">
+            <Button
+                as={Link}
+                href="/forgot-password"
+                variant="link"
+                className="self-end text-main p-0 mb-4"
+            >
                 Forgot password?
             </Button>
 

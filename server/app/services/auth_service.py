@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-
+import secrets
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
     PendingRegistrationCommandRepository,
@@ -17,7 +17,7 @@ from app.schemas.auth import (
     AuthUserResponse,
     ConfirmSignupCodeSchema,
     SignUpFormData,
-    ResendCodeSchema,
+    EmailSchema,
     SigninSchema,
 )
 from app.schemas.token import AccessTokenCreatePayload, RefreshTokenCreatePayload
@@ -32,6 +32,8 @@ from app.core.config import settings
 from app.services.auth_token_service import AuthTokenService
 from app.services.token_service import TokenService
 from app.models.user import User
+from app.repositories.query_repositories.password_reset_token_query_repository import PasswordResetTokenQueryRepository
+from app.repositories.command_repositories.password_reset_token_command_repository import PasswordResetTokenCommandRepository
 
 
 class AuthService:
@@ -54,6 +56,9 @@ class AuthService:
 
         self.auth_token_service = AuthTokenService(db)
         self.token_service = TokenService()
+
+        self.password_reset_token_query_repository = PasswordResetTokenQueryRepository(db)
+        self.password_reset_token_command_repository = PasswordResetTokenCommandRepository(db)
 
     def _format_auth_user(self, user: User) -> AuthUserResponse:
         return {
@@ -202,7 +207,7 @@ class AuthService:
             "createdAt": user.created_at.isoformat(),
         }
 
-    async def resend_signup_code(self, data: ResendCodeSchema) -> dict:
+    async def resend_signup_code(self, data: EmailSchema) -> dict:
         pending_registration = (
             self.pending_registration_query_repository.find_by_email(
                 email=data.email,
@@ -387,3 +392,18 @@ class AuthService:
             return
 
         self.session_command_repository.revoke_session(validated_session.session)
+
+    async def request_reset_password(self, data: EmailSchema) -> None:
+        existed_user = self.user_query_repository.find_by_email(email=data.email)
+
+        if existed_user is None:
+            return
+
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = self.password_service.hash_password(raw_token)
+
+        expires_at = datetime.now(UTC) + timedelta(minutes=15)
+
+        self.password_reset_token_command_repository.revoke_active_tokens_for_user(
+            user_id=existed_user.id,
+        )
