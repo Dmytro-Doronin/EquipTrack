@@ -16,6 +16,17 @@ export type ForgotPasswordType = {
     email: string;
 };
 
+export type ResetPasswordType = {
+    token: string;
+    password: string;
+    confirmPassword: string;
+};
+
+export type AuthMessageResponse = {
+    success: boolean;
+    message: string;
+};
+
 export type GetMeResponse = {
     success: boolean;
     data: {
