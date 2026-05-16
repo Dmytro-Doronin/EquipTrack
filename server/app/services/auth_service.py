@@ -1,6 +1,4 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
-import secrets
 from app.errors.validation_error import raise_validation_error
 from app.repositories.command_repositories.pending_registration_command_repository import (
     PendingRegistrationCommandRepository,
@@ -32,33 +30,38 @@ from app.core.config import settings
 from app.services.auth_token_service import AuthTokenService
 from app.services.token_service import TokenService
 from app.models.user import User
-from app.repositories.query_repositories.password_reset_token_query_repository import PasswordResetTokenQueryRepository
-from app.repositories.command_repositories.password_reset_token_command_repository import PasswordResetTokenCommandRepository
 
 
 class AuthService:
-    def __init__(self, db: Session):
-        self.user_query_repository = UserQueryRepository(db)
-        self.user_command_repository = UserCommandRepository(db)
-
+    def __init__(
+        self,
+        user_query_repository: UserQueryRepository,
+        user_command_repository: UserCommandRepository,
+        pending_registration_query_repository: PendingRegistrationQueryRepository,
+        pending_registration_command_repository: PendingRegistrationCommandRepository,
+        storage_service: S3StorageService,
+        password_service: PasswordService,
+        verification_code_service: VerificationCodeService,
+        email_service: EmailService,
+        session_command_repository: SessionCommandRepository,
+        auth_token_service: AuthTokenService,
+        token_service: TokenService,
+    ):
+        self.user_query_repository = user_query_repository
+        self.user_command_repository = user_command_repository
         self.pending_registration_query_repository = (
-            PendingRegistrationQueryRepository(db)
+            pending_registration_query_repository
         )
         self.pending_registration_command_repository = (
-            PendingRegistrationCommandRepository(db)
+            pending_registration_command_repository
         )
-        self.storage_service = S3StorageService()
-        self.password_service = PasswordService()
-        self.verification_code_service = VerificationCodeService()
-        self.email_service = EmailService()
-
-        self.session_command_repository = SessionCommandRepository(db)
-
-        self.auth_token_service = AuthTokenService(db)
-        self.token_service = TokenService()
-
-        self.password_reset_token_query_repository = PasswordResetTokenQueryRepository(db)
-        self.password_reset_token_command_repository = PasswordResetTokenCommandRepository(db)
+        self.storage_service = storage_service
+        self.password_service = password_service
+        self.verification_code_service = verification_code_service
+        self.email_service = email_service
+        self.session_command_repository = session_command_repository
+        self.auth_token_service = auth_token_service
+        self.token_service = token_service
 
     def _format_auth_user(self, user: User) -> AuthUserResponse:
         return {
@@ -392,18 +395,3 @@ class AuthService:
             return
 
         self.session_command_repository.revoke_session(validated_session.session)
-
-    async def request_reset_password(self, data: EmailSchema) -> None:
-        existed_user = self.user_query_repository.find_by_email(email=data.email)
-
-        if existed_user is None:
-            return
-
-        raw_token = secrets.token_urlsafe(32)
-        token_hash = self.password_service.hash_password(raw_token)
-
-        expires_at = datetime.now(UTC) + timedelta(minutes=15)
-
-        self.password_reset_token_command_repository.revoke_active_tokens_for_user(
-            user_id=existed_user.id,
-        )

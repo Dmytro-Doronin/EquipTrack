@@ -2,8 +2,6 @@ from dataclasses import dataclass
 from typing import NoReturn
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
 from app.errors.validation_error import raise_validation_error
 from app.models.user_session import UserSession
 from app.repositories.query_repositories.session_query_repository import (
@@ -22,10 +20,15 @@ class ValidatedRefreshSession:
 
 
 class AuthTokenService:
-    def __init__(self, db: Session):
-        self.session_query_repository = SessionQueryRepository(db)
-        self.password_service = PasswordService()
-        self.token_service = TokenService()
+    def __init__(
+        self,
+        session_query_repository: SessionQueryRepository,
+        password_service: PasswordService,
+        token_service: TokenService,
+    ):
+        self.session_query_repository = session_query_repository
+        self.password_service = password_service
+        self.token_service = token_service
 
     def validate_refresh_session(
         self,

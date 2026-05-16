@@ -65,3 +65,34 @@ class EmailService:
                 </div>
             """,
         )
+
+    async def send_password_recovery_email(
+        self,
+        email: str,
+        reset_link: str,
+    ) -> None:
+        expires_minutes = settings.password_reset_token_expires_minutes
+
+        await self.send_email(
+            to_email=email,
+            subject="Reset your password",
+            text_content=(
+                f"Click this link to reset your password: {reset_link}. "
+                f"This link expires in {expires_minutes} minutes."
+            ),
+            html_content=f"""
+                <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                    <h2>Reset your EquipTrack password</h2>
+
+                    <p>Click this link to reset your password:</p>
+
+                    <p>
+                        <a href="{reset_link}">{reset_link}</a>
+                    </p>
+
+                    <p>This link expires in {expires_minutes} minutes.</p>
+
+                    <p>If you did not request this email, you can ignore it.</p>
+                </div>
+            """,
+        )

@@ -66,3 +66,31 @@ class SigninSchema(BaseModel):
     password: str = Field(
         min_length=8,
     )
+
+
+class PasswordRecoveryStartSchema(BaseModel):
+    email: EmailStr
+
+
+class PasswordRecoveryConfirmSchema(BaseModel):
+    token: str = Field(min_length=1)
+    password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, password: str) -> str:
+        if not any(char.isupper() for char in password):
+            raise ValueError("Password must contain an uppercase letter")
+
+        if not any(char.isdigit() for char in password):
+            raise ValueError("Password must contain a number")
+
+        return password
+
+    @model_validator(mode="after")
+    def validate_passwords_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match")
+
+        return self
