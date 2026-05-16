@@ -1,12 +1,13 @@
 'use server';
 
 import { actionState, FastApiErrorResponse } from '@/actions/types';
+import { apiURL } from '@/api/variables';
 
 export const codeResendAction = async (email: string): Promise<actionState> => {
     const formData = new FormData();
     formData.append('email', email);
 
-    const response = await fetch('http://localhost:8000/api/auth/signup/resend-code', {
+    const response = await fetch(`${apiURL}/auth/signup/resend-code`, {
         method: 'POST',
         body: formData,
     });

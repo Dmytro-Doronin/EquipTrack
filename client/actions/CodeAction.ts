@@ -1,6 +1,7 @@
 'use server';
 
 import { actionState, FastApiErrorResponse } from '@/actions/types';
+import { apiURL } from '@/api/variables';
 
 export const codeAction = async (email: string, code: string): Promise<actionState> => {
     const formData = new FormData();
@@ -8,7 +9,7 @@ export const codeAction = async (email: string, code: string): Promise<actionSta
     formData.append('email', email);
     formData.append('code', code);
 
-    const response = await fetch('http://localhost:8000/api/auth/signup/confirm', {
+    const response = await fetch(`${apiURL}/auth/signup/confirm`, {
         method: 'POST',
         body: formData,
     });

@@ -1,16 +1,12 @@
 'use server';
 
 import { actionState, FastApiErrorResponse } from '@/actions/types';
+import { apiURL } from '@/api/variables';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
-
-export const forgotPasswordAction = async (email: string): Promise<actionState> => {
-    const response = await fetch(`${API_URL}/auth/password-recovery/start`, {
+export const forgotPasswordAction = async (formData: FormData): Promise<actionState> => {
+    const response = await fetch(`${apiURL}/auth/password-recovery/start`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
+        body: formData,
     });
 
     const data = (await response.json().catch(() => null)) as FastApiErrorResponse | null;

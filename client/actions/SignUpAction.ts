@@ -1,9 +1,10 @@
 'use server';
 
 import { actionState } from '@/actions/types';
+import { apiURL } from '@/api/variables';
 
 export const signUpAction = async (formData: FormData): Promise<actionState> => {
-    const response = await fetch('http://localhost:8000/api/auth/signup/start', {
+    const response = await fetch(`${apiURL}/auth/signup/start`, {
         method: 'POST',
         body: formData,
     });

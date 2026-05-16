@@ -1,8 +1,7 @@
 'use server';
 
 import { actionState, FastApiErrorResponse } from '@/actions/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+import { apiURL } from '@/api/variables';
 
 type ResetPasswordActionPayload = {
     token: string;
@@ -15,7 +14,7 @@ export const resetPasswordAction = async ({
     password,
     confirmPassword,
 }: ResetPasswordActionPayload): Promise<actionState> => {
-    const response = await fetch(`${API_URL}/auth/password-recovery/confirm`, {
+    const response = await fetch(`${apiURL}/auth/password-recovery/confirm`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

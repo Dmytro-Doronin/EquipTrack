@@ -1,4 +1,4 @@
-from fastapi import Body
+from fastapi import Body, Form
 from pydantic import ValidationError
 
 from app.errors.format_validation_errors import format_pydantic_errors
@@ -10,7 +10,7 @@ from app.schemas.auth import (
 
 
 async def validate_password_recovery_start_form(
-    email: str = Body(...),
+    email: str = Form(...),
 ) -> PasswordRecoveryStartSchema:
     try:
         return PasswordRecoveryStartSchema(email=email)

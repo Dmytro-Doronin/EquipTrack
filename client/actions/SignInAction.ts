@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 
 import { FastApiErrorResponse, User } from '@/actions/types';
+import { apiURL } from '@/api/variables';
 import { parseCookieHeader } from '@/utils/parseCookieHeader';
 
 type SignInActionData = {
@@ -25,7 +26,7 @@ type SignInSuccessResponse = {
 };
 
 export const signInAction = async (formData: FormData): Promise<SignInActionState> => {
-    const response = await fetch('http://localhost:8000/api/auth/signin', {
+    const response = await fetch(`${apiURL}/auth/signin`, {
         method: 'POST',
         body: formData,
     });

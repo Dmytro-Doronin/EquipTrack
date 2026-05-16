@@ -31,9 +31,11 @@ export const ForgotPasswordForm = () => {
     const onSubmitForm = async (data: ForgotPasswordFormValues) => {
         setServerError(null);
         setIsLoading(true);
+        const formData = new FormData();
 
+        formData.append('email', data.email);
         try {
-            const result = await forgotPasswordAction(data.email);
+            const result = await forgotPasswordAction(formData);
 
             if (!result.success) {
                 let hasFieldError = false;
