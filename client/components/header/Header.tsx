@@ -20,10 +20,10 @@ export const Header = () => {
                         <ControlPanelTrigger user={user} options={linkOptions} />
                     ) : (
                         <>
-                            <Button as={Link} href="/signup">
+                            <Button as={Link} href="/signup" size="compact">
                                 Registration
                             </Button>
-                            <Button as={Link} href="/signin" variant="secondary">
+                            <Button as={Link} href="/signin" variant="secondary" size="compact">
                                 Log In
                             </Button>
                         </>

@@ -6,6 +6,7 @@ import { PropsWithChildren, useState } from 'react';
 
 import { AuthBootstrap } from '@/components/auth/authBootstrap/AuthBootstrap';
 import { ModalHost } from '@/components/modalHost/modalHost';
+import { NotificationCenter } from '@/components/notificationCenter/NotificationCenter';
 
 export const Providers = ({ children }: PropsWithChildren) => {
     const [queryClient] = useState(
@@ -23,6 +24,7 @@ export const Providers = ({ children }: PropsWithChildren) => {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <NotificationCenter />
             <ModalHost />
             <AuthBootstrap>{children}</AuthBootstrap>
         </QueryClientProvider>
