@@ -50,14 +50,14 @@ def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
         secure=False,
         samesite="lax",
         max_age=60 * 60 * 24 * settings.refresh_token_expires_days,
-        path="/api/auth",
+        path="/",
     )
 
 
 def clear_refresh_token_cookie(response: Response) -> None:
     response.delete_cookie(
         key="refresh_token",
-        path="/api/auth",
+        path="/",
         httponly=True,
         secure=False,
         samesite="lax",

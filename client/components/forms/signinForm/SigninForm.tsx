@@ -50,11 +50,10 @@ export const SignInForm = () => {
                 let hasFieldError = false;
 
                 if (result.errors) {
-                    Object.entries(result.errors).forEach(([messages]) => {
+                    Object.entries(result.errors).forEach(([, messages]) => {
                         if (!messages?.[0]) {
                             return;
                         }
-
                         hasFieldError = true;
                         setServerError(messages[0]);
                     });
