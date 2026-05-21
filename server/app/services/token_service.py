@@ -14,7 +14,7 @@ from app.schemas.token import (
     RefreshTokenCreatePayload,
     RefreshTokenPayload,
 )
-from errors.app_error import raise_app_error
+from app.errors.app_error import raise_app_error
 
 
 class TokenService:
