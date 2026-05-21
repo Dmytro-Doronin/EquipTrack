@@ -11,7 +11,7 @@ class UserCommandRepository:
         self,
         login: str,
         email: str,
-        password_hash: str,
+        password_hash: str | None,
         avatar_url: str | None = None,
         role: str = "user",
     ) -> User:

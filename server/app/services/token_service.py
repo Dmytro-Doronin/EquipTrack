@@ -14,6 +14,7 @@ from app.schemas.token import (
     RefreshTokenCreatePayload,
     RefreshTokenPayload,
 )
+from errors.app_error import raise_app_error
 
 
 class TokenService:
@@ -92,11 +93,13 @@ class TokenService:
             self._raise_invalid_refresh_token()
 
     def _raise_invalid_refresh_token(self) -> NoReturn:
-        raise_validation_error({
-            "refreshToken": ["Invalid or expired refresh token"],
-        })
+        raise_app_error(
+            message="Invalid or expired refresh token",
+            status_code=401,
+        )
 
     def _raise_invalid_access_token(self) -> NoReturn:
-        raise_validation_error({
-            "accessToken": ["Invalid or expired access token"],
-        })
+        raise_app_error(
+            message="Invalid or expired access token",
+            status_code=401,
+        )
