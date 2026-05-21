@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { signInAction } from '@/actions/SignInAction';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
 import { Loader } from '@/components/loader/Loader';
@@ -118,6 +119,14 @@ export const SignInForm = () => {
             <Button className="mb-5" fullWidth disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <div className="mb-5 flex items-center gap-3 text-xs text-sub-text">
+                <span className="h-px flex-1 bg-round" />
+                <span>or</span>
+                <span className="h-px flex-1 bg-round" />
+            </div>
+
+            <GoogleAuthButton className="mb-5" />
 
             {isLoading && <Loader />}
         </form>

@@ -7,6 +7,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import { signUpAction } from '@/actions/SignUpAction';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
 import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
 import { avatarSchema, signUpSchema } from '@/components/forms/signupForm/signUpForm.validation';
@@ -164,6 +165,14 @@ export const SignupForm = () => {
             <Button className="mb-5" fullWidth disabled={isLoading}>
                 {isLoading ? 'Signing up...' : 'Sign Up'}
             </Button>
+
+            <div className="mb-5 flex items-center gap-3 text-xs text-sub-text">
+                <span className="h-px flex-1 bg-round" />
+                <span>or</span>
+                <span className="h-px flex-1 bg-round" />
+            </div>
+
+            <GoogleAuthButton className="mb-5" />
 
             <p className="text-[12px] text-sub-text">
                 By clicking signup, you agree to accept ET Terms and Conditions

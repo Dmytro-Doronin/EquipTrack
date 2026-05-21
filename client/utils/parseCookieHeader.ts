@@ -36,10 +36,10 @@ export const parseCookieHeader = (setCookieHeader: string[]): ParsedCookie[] => 
                 case 'secure':
                     options.secure = true;
                     break;
-                case 'httpOnly':
+                case 'httponly':
                     options.httpOnly = true;
                     break;
-                case 'sameSite':
+                case 'samesite':
                     if (val) {
                         const sameSite = val.toLowerCase();
                         if (['strict', 'lax', 'none'].includes(sameSite)) {
@@ -47,7 +47,7 @@ export const parseCookieHeader = (setCookieHeader: string[]): ParsedCookie[] => 
                         }
                     }
                     break;
-                case 'maxAge':
+                case 'max-age':
                     if (!isNaN(Number(val))) {
                         options.maxAge = Number(val);
                     }
