@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     password_reset_token_secret: str
     client_url: str
     password_reset_token_expires_minutes: int = 15
+    google_client_id: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
