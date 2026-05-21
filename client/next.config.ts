@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
                 hostname: 'equip-tracker.s3.eu-north-1.amazonaws.com',
                 pathname: '/avatars/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'lh3.googleusercontent.com',
+            },
         ],
     },
 };
