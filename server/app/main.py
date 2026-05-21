@@ -9,6 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "https://equip-track-seven.vercel.app/features"
     ],
     allow_credentials=True,
     allow_methods=["*"],
