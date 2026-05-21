@@ -47,6 +47,9 @@ class PasswordRecoveryService:
         if user is None:
             return
 
+        if user.password_hash is None:
+            return
+
         raw_token = secrets.token_urlsafe(32)
         token_hash = self.password_service.hash_reset_token(raw_token)
         expires_at = datetime.now(UTC) + timedelta(
@@ -85,6 +88,12 @@ class PasswordRecoveryService:
         user = self.user_query_repository.find_by_id(reset_token.user_id)
 
         if user is None:
+            self.password_reset_token_command_repository.mark_as_used(reset_token)
+            raise_validation_error({
+                "token": ["Invalid or expired password recovery link"],
+            })
+
+        if user.password_hash is None:
             self.password_reset_token_command_repository.mark_as_used(reset_token)
             raise_validation_error({
                 "token": ["Invalid or expired password recovery link"],

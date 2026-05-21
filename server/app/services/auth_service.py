@@ -1,5 +1,10 @@
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
 from app.errors.validation_error import raise_validation_error
+from app.repositories.command_repositories.oauth_account_command_repository import (
+    OAuthAccountCommandRepository,
+)
 from app.repositories.command_repositories.pending_registration_command_repository import (
     PendingRegistrationCommandRepository,
 )
@@ -8,6 +13,9 @@ from app.repositories.command_repositories.user_commond_repository import (
 )
 from app.repositories.query_repositories.pending_registration_query_repository import (
     PendingRegistrationQueryRepository,
+)
+from app.repositories.query_repositories.oauth_account_query_repository import (
+    OAuthAccountQueryRepository,
 )
 from app.repositories.query_repositories.user_query_repository import UserQueryRepository
 from app.schemas.auth import (
@@ -18,8 +26,10 @@ from app.schemas.auth import (
     EmailSchema,
     SigninSchema,
 )
+from app.schemas.oauth import GoogleAuthSchema, GoogleUserInfo, OAuthProvider
 from app.schemas.token import AccessTokenCreatePayload, RefreshTokenCreatePayload
 from app.services.email_service import EmailService
+from app.services.google_oauth_service import GoogleOAuthService
 from app.services.password_service import PasswordService
 from app.services.verification_code_service import VerificationCodeService
 from app.services.s3_storage_service import S3StorageService
@@ -30,7 +40,8 @@ from app.core.config import settings
 from app.services.auth_token_service import AuthTokenService
 from app.services.token_service import TokenService
 from app.models.user import User
-
+from app.errors.validation_error import raise_validation_error
+from app.errors.app_error import raise_app_error
 
 class AuthService:
     def __init__(
@@ -46,6 +57,9 @@ class AuthService:
         session_command_repository: SessionCommandRepository,
         auth_token_service: AuthTokenService,
         token_service: TokenService,
+        oauth_account_query_repository: OAuthAccountQueryRepository,
+        oauth_account_command_repository: OAuthAccountCommandRepository,
+        google_oauth_service: GoogleOAuthService,
     ):
         self.user_query_repository = user_query_repository
         self.user_command_repository = user_command_repository
@@ -62,6 +76,9 @@ class AuthService:
         self.session_command_repository = session_command_repository
         self.auth_token_service = auth_token_service
         self.token_service = token_service
+        self.oauth_account_query_repository = oauth_account_query_repository
+        self.oauth_account_command_repository = oauth_account_command_repository
+        self.google_oauth_service = google_oauth_service
 
     def _format_auth_user(self, user: User) -> AuthUserResponse:
         return {
@@ -70,6 +87,55 @@ class AuthService:
             "email": user.email,
             "avatarUrl": user.avatar_url,
             "role": user.role,
+        }
+
+    def _create_auth_tokens_for_user(
+        self,
+        user: User,
+        user_agent: str | None,
+        ip_address: str | None,
+    ) -> AuthTokenResult:
+        access_token = self.token_service.create_access_token(
+            payload=AccessTokenCreatePayload(
+                sub=str(user.id),
+                role=user.role,
+            ),
+        )
+
+        refresh_token_expires_at = datetime.now(UTC) + timedelta(
+            days=settings.refresh_token_expires_days,
+        )
+
+        user_session = self.session_command_repository.create_pending_session(
+            user_id=user.id,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=refresh_token_expires_at,
+        )
+
+        refresh_token = self.token_service.create_refresh_token(
+            payload=RefreshTokenCreatePayload(
+                sub=str(user.id),
+                sid=str(user_session.id),
+            ),
+        )
+
+        refresh_token_hash = self.password_service.hash_password(
+            password=refresh_token,
+        )
+
+        self.session_command_repository.rotate_refresh_token(
+            user_session=user_session,
+            refresh_token_hash=refresh_token_hash,
+            user_agent=user_agent,
+            ip_address=ip_address,
+            expires_at=refresh_token_expires_at,
+        )
+
+        return {
+            "user": self._format_auth_user(user),
+            "accessToken": access_token,
+            "refreshToken": refresh_token,
         }
 
     async def start_signup(self, form_data: SignUpFormData) -> dict:
@@ -276,6 +342,11 @@ class AuthService:
                 "email": ["Invalid email or password"],
             })
 
+        if user.password_hash is None:
+            raise_validation_error({
+                "email": ["This account uses Google sign-in. Please continue with Google."],
+            })
+
         is_password_valid = self.password_service.verify_password(
             plain_password=data.password,
             hashed_password=user.password_hash,
@@ -286,48 +357,105 @@ class AuthService:
                 "password": ["Invalid email or password"],
             })
 
-        access_token = self.token_service.create_access_token(
-            payload=AccessTokenCreatePayload(
-                sub=str(user.id),
-                role=user.role,
-            ),
-        )
-
-        refresh_token_expires_at = datetime.now(UTC) + timedelta(
-            days=settings.refresh_token_expires_days,
-        )
-
-        user_session = self.session_command_repository.create_pending_session(
-            user_id=user.id,
+        return self._create_auth_tokens_for_user(
+            user=user,
             user_agent=user_agent,
             ip_address=ip_address,
-            expires_at=refresh_token_expires_at,
         )
 
-        refresh_token = self.token_service.create_refresh_token(
-            payload=RefreshTokenCreatePayload(
-                sub=str(user.id),
-                sid=str(user_session.id),
-            ),
+    async def google_auth(
+        self,
+        data: GoogleAuthSchema,
+        user_agent: str | None,
+        ip_address: str | None,
+    ) -> AuthTokenResult:
+        google_user = self.google_oauth_service.verify_id_token(data.id_token)
+        provider: OAuthProvider = "google"
+
+        oauth_account = (
+            self.oauth_account_query_repository.find_by_provider_user_id(
+                provider=provider,
+                provider_user_id=google_user.provider_user_id,
+            )
         )
 
-        refresh_token_hash = self.password_service.hash_password(
-            password=refresh_token,
+        if oauth_account is not None:
+            user = self.user_query_repository.find_by_id(oauth_account.user_id)
+
+            if user is None:
+                raise_app_error(
+                    message="Unable to sign in with Google",
+                    status_code=400,
+                )
+
+            return self._create_auth_tokens_for_user(
+                user=user,
+                user_agent=user_agent,
+                ip_address=ip_address,
+            )
+
+        existing_user = self.user_query_repository.find_by_email(
+            email=str(google_user.email),
         )
 
-        self.session_command_repository.rotate_refresh_token(
-            user_session=user_session,
-            refresh_token_hash=refresh_token_hash,
+        if existing_user is not None:
+            existing_oauth_account = (
+                self.oauth_account_query_repository.find_by_user_and_provider(
+                    user_id=existing_user.id,
+                    provider=provider,
+                )
+            )
+
+            if existing_oauth_account is not None:
+                raise_app_error(
+                    message="Unable to sign in with Google",
+                    status_code=409,
+                )
+
+            self._create_google_oauth_account(
+                user_id=existing_user.id,
+                provider=provider,
+                google_user=google_user,
+            )
+            user = existing_user
+        else:
+            user = self.user_command_repository.create_user(
+                login=google_user.login,
+                email=str(google_user.email),
+                password_hash=None,
+                avatar_url=google_user.avatar_url,
+                role="user",
+            )
+            self._create_google_oauth_account(
+                user_id=user.id,
+                provider=provider,
+                google_user=google_user,
+            )
+
+        return self._create_auth_tokens_for_user(
+            user=user,
             user_agent=user_agent,
             ip_address=ip_address,
-            expires_at=refresh_token_expires_at,
         )
 
-        return {
-            "user": self._format_auth_user(user),
-            "accessToken": access_token,
-            "refreshToken": refresh_token,
-        }
+    def _create_google_oauth_account(
+        self,
+        user_id: int,
+        provider: OAuthProvider,
+        google_user: GoogleUserInfo,
+    ) -> None:
+        try:
+            self.oauth_account_command_repository.create_oauth_account(
+                user_id=user_id,
+                provider=provider,
+                provider_user_id=google_user.provider_user_id,
+                email=str(google_user.email),
+            )
+        except IntegrityError:
+            raise_app_error(
+                message="Unable to sign in with Google",
+                status_code=409,
+            )
 
     async def refresh_token(
         self,

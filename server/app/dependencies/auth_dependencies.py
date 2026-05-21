@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.repositories.command_repositories.password_reset_token_command_repository import (
     PasswordResetTokenCommandRepository,
 )
+from app.repositories.command_repositories.oauth_account_command_repository import (
+    OAuthAccountCommandRepository,
+)
 from app.repositories.command_repositories.pending_registration_command_repository import (
     PendingRegistrationCommandRepository,
 )
@@ -16,6 +19,9 @@ from app.repositories.command_repositories.user_commond_repository import (
 from app.repositories.query_repositories.password_reset_token_query_repository import (
     PasswordResetTokenQueryRepository,
 )
+from app.repositories.query_repositories.oauth_account_query_repository import (
+    OAuthAccountQueryRepository,
+)
 from app.repositories.query_repositories.pending_registration_query_repository import (
     PendingRegistrationQueryRepository,
 )
@@ -26,6 +32,7 @@ from app.repositories.query_repositories.user_query_repository import UserQueryR
 from app.services.auth_service import AuthService
 from app.services.auth_token_service import AuthTokenService
 from app.services.email_service import EmailService
+from app.services.google_oauth_service import GoogleOAuthService
 from app.services.password_recovery_service import PasswordRecoveryService
 from app.services.password_service import PasswordService
 from app.services.s3_storage_service import S3StorageService
@@ -53,6 +60,9 @@ def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
             token_service=token_service,
         ),
         token_service=token_service,
+        oauth_account_query_repository=OAuthAccountQueryRepository(db),
+        oauth_account_command_repository=OAuthAccountCommandRepository(db),
+        google_oauth_service=GoogleOAuthService(),
     )
 
 
