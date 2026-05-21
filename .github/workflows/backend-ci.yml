@@ -40,6 +40,8 @@ jobs:
                 working-directory: server
 
         env:
+            PYTHONPATH: ${{ github.workspace }}/server
+
             POSTGRES_USER: equiptrack
             POSTGRES_PASSWORD: equiptrack_password
             POSTGRES_DB: equiptrack_test
@@ -97,4 +99,4 @@ jobs:
               run: alembic upgrade head
 
             - name: Run tests
-              run: pytest -q
+              run: python -m pytest -q
