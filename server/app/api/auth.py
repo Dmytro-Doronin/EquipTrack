@@ -18,6 +18,7 @@ from app.schemas.auth import (
     PasswordRecoveryConfirmSchema,
     PasswordRecoveryStartSchema,
 )
+from app.schemas.oauth import GoogleAuthSchema
 from app.models.user import User
 from app.validators.confirm_signup_code_validator import (
     validate_confirm_signup_code_form,
@@ -122,6 +123,32 @@ async def login(
     return {
         "success": True,
         "message": "Signed in successfully",
+        "data": {
+            "user": result["user"],
+            "accessToken": result["accessToken"],
+        },
+    }
+
+
+@router.post("/google")
+async def google_auth(
+    request: Request,
+    response: Response,
+    data: GoogleAuthSchema,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    client = request.client
+    result = await auth_service.google_auth(
+        data=data,
+        user_agent=request.headers.get("user-agent"),
+        ip_address=client.host if client is not None else None,
+    )
+
+    set_refresh_token_cookie(response, result["refreshToken"])
+
+    return {
+        "success": True,
+        "message": "Signed in with Google successfully",
         "data": {
             "user": result["user"],
             "accessToken": result["accessToken"],
