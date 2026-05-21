@@ -48,8 +48,8 @@ def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=60 * 60 * 24 * settings.refresh_token_expires_days,
         path="/",
     )
@@ -60,7 +60,7 @@ def clear_refresh_token_cookie(response: Response) -> None:
         key="refresh_token",
         path="/",
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="lax",
     )
 
