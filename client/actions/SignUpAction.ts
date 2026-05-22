@@ -14,8 +14,8 @@ export const signUpAction = async (formData: FormData): Promise<actionState> => 
     if (!response.ok) {
         return {
             success: false,
-            errors: data?.errors,
-            message: data?.message ?? 'Signup failed',
+            errors: data?.detail?.errors,
+            message: data?.detail?.message ?? 'Sign in failed',
         };
     }
 
