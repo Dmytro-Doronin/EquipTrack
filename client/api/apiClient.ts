@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
+import { refreshSessionAction } from '@/actions/refreshSessionAction';
 import { User } from '@/actions/types';
 import { useAuthStore } from '@/stores/auth.store';
 import { clearAuthHint } from '@/utils/authHint';
@@ -16,12 +17,6 @@ type AuthSession = {
     accessToken: string;
 };
 
-type RefreshResponse = {
-    success: boolean;
-    message: string;
-    data: AuthSession;
-};
-
 let refreshPromise: Promise<AuthSession | null> | null = null;
 
 export const apiClient: AxiosInstance = axios.create({
@@ -33,21 +28,18 @@ export const apiClient: AxiosInstance = axios.create({
     },
 });
 
-const refreshClient = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
-    timeout: 10000,
-    headers: {
-        Accept: 'application/json',
-    },
-});
-
 export async function refreshSession(): Promise<AuthSession | null> {
     if (!refreshPromise) {
-        refreshPromise = refreshClient
-            .post<RefreshResponse>('/auth/refresh-token')
-            .then((response) => {
-                const session = response.data.data;
+        refreshPromise = refreshSessionAction()
+            .then((result) => {
+                if (!result.success || !result.data) {
+                    useAuthStore.getState().clearAuth();
+                    clearAuthHint();
+
+                    return null;
+                }
+
+                const session = result.data;
 
                 useAuthStore.getState().setAuth({
                     user: session.user,
@@ -59,6 +51,7 @@ export async function refreshSession(): Promise<AuthSession | null> {
             .catch(() => {
                 useAuthStore.getState().clearAuth();
                 clearAuthHint();
+
                 return null;
             })
             .finally(() => {
