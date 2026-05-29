@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Cookie, Depends, Request, Response, HTTPException, status
 
 from app.api.dependencies.auth import CurrentUser
-from app.core.config import settings
 from app.validators.sign_up_validator import validate_sign_up_form
 from app.dependencies.auth_dependencies import (
     get_auth_service,
@@ -10,7 +9,6 @@ from app.dependencies.auth_dependencies import (
 from app.services.auth_service import AuthService
 from app.services.password_recovery_service import PasswordRecoveryService
 from app.schemas.auth import (
-    AuthUserResponse,
     ConfirmSignupCodeSchema,
     SignUpFormData,
     EmailSchema,
@@ -19,7 +17,6 @@ from app.schemas.auth import (
     PasswordRecoveryStartSchema,
 )
 from app.schemas.oauth import GoogleAuthSchema
-from app.models.user import User
 from app.validators.confirm_signup_code_validator import (
     validate_confirm_signup_code_form,
 )
@@ -29,40 +26,10 @@ from app.validators.password_recovery_validator import (
     validate_password_recovery_confirm_form,
     validate_password_recovery_start_form,
 )
+from app.utils.cookie_utils import set_refresh_token_cookie, clear_refresh_token_cookie
+from app.utils.format import format_auth_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-def format_auth_user(user: User) -> AuthUserResponse:
-    return {
-        "id": user.id,
-        "login": user.login,
-        "email": user.email,
-        "avatarUrl": user.avatar_url,
-        "role": user.role,
-    }
-
-
-def set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=60 * 60 * 24 * settings.refresh_token_expires_days,
-        path="/",
-    )
-
-
-def clear_refresh_token_cookie(response: Response) -> None:
-    response.delete_cookie(
-        key="refresh_token",
-        path="/",
-        httponly=True,
-        secure=True,
-        samesite="lax",
-    )
 
 
 @router.post("/signup/start")
