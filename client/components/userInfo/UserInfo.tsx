@@ -18,11 +18,12 @@ export const userLoginTextVariants = cva('truncate text-sm font-semibold text-st
 type UserLoginTextVariantProps = VariantProps<typeof userLoginTextVariants>;
 
 type UserInfoProps = {
+    detailsClassName?: string;
     user: User;
     variant?: UserLoginTextVariantProps['variant'];
 };
 
-export const UserInfo = ({ user, variant }: UserInfoProps) => {
+export const UserInfo = ({ detailsClassName, user, variant }: UserInfoProps) => {
     const { avatarUrl, email, login } = user;
     return (
         <>
@@ -33,7 +34,7 @@ export const UserInfo = ({ user, variant }: UserInfoProps) => {
                     <span>{login.slice(0, 1)}</span>
                 )}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className={['min-w-0 flex-1', detailsClassName].filter(Boolean).join(' ')}>
                 <h2 className={userLoginTextVariants({ variant })}>{login}</h2>
                 <p className="truncate text-xs text-gray-400">{email}</p>
             </div>

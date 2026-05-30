@@ -7,7 +7,7 @@ import { useNotificationStore } from '@/stores/notification.store';
 
 import { Button } from '../ui/button/Button';
 
-const wrapperCva = cva('fixed top-5 right-[50%] z-[1000] flex flex-col gap-5');
+const wrapperCva = cva('fixed bottom-10 right-[10%] z-[1000] flex flex-col gap-5');
 
 const toastCva = cva(
     'flex items-center gap-2.5 px-5 py-3 rounded-lg text-white font-bold animate-toast-fadeout',

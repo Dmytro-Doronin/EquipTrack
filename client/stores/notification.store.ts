@@ -20,12 +20,7 @@ type NotificationState = {
 };
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
-    notification: {
-        id: '1',
-        message: 'asd',
-        variant: 'success',
-        duration: 10,
-    },
+    notification: null,
     timeoutId: null,
 
     clear: () => {
