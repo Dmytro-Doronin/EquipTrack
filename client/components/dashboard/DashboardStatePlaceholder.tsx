@@ -1,4 +1,4 @@
-import type { DashboardState } from '@/features/dashboard/models/types';
+import { DashboardState } from '@/types/dashboard/types';
 
 type DashboardStatePlaceholderProps = {
     state: Exclude<DashboardState, 'NO_ORGANIZATION'>;
