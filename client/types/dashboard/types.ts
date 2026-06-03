@@ -16,6 +16,7 @@ export type DashboardContext = {
     };
     pendingRequests: Array<{
         id: number;
+        organizationId: number;
         organizationName: string;
         status: 'pending';
         createdAt: string;

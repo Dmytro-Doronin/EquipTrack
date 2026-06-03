@@ -1,17 +1,31 @@
 'use client';
 
-import { organizationViewType } from '@/app/(private)/onboarding/organizations/join/ui/JoinClientPage';
+import { OrganizationSearchResult } from '@/api/types/organization.types';
 import { OrganizationCard } from '@/components/organizationCard/organizationCard';
 
 type OrganizationListType = {
-    organizations: organizationViewType[];
+    disabled?: boolean;
+    organizations: OrganizationSearchResult[];
+    requestingOrganizationId?: number | null;
+    onRequestJoin: (organization: OrganizationSearchResult) => void;
 };
 
-export const OrganizationList = ({ organizations }: OrganizationListType) => {
+export const OrganizationList = ({
+    disabled = false,
+    organizations,
+    requestingOrganizationId = null,
+    onRequestJoin,
+}: OrganizationListType) => {
     return (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
             {organizations.map((organization) => (
-                <OrganizationCard key={organization.id} organization={organization} />
+                <OrganizationCard
+                    disabled={disabled}
+                    isSubmitting={requestingOrganizationId === organization.id}
+                    key={organization.id}
+                    organization={organization}
+                    onRequestJoin={onRequestJoin}
+                />
             ))}
         </div>
     );

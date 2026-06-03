@@ -3,6 +3,8 @@ export type Organization = {
     name: string;
 };
 
+export type OrganizationSearchResult = Organization;
+
 export type OrganizationMembership = {
     role: 'owner' | 'admin' | 'member';
     status: 'active' | 'pending';
@@ -23,23 +25,23 @@ export type CreateOrganizationResponse = {
 
 export type CreateOrganizationResult = CreateOrganizationResponse['data'];
 
-export type JoinOrganizationPayload = {
-    organizationName: string;
-};
-
 export type PendingOrganizationRequest = {
     id: number;
+    organizationId: number;
     organizationName: string;
     status: 'pending';
     createdAt: string;
 };
 
-export type JoinOrganizationResponse = {
+export type SearchOrganizationsResponse = {
     success: boolean;
-    message: string;
-    data: {
-        pendingRequest: PendingOrganizationRequest;
-    };
+    data: OrganizationSearchResult[];
 };
 
-export type JoinOrganizationResult = JoinOrganizationResponse['data'];
+export type CreateJoinRequestResponse = {
+    success: boolean;
+    message: string;
+    data: PendingOrganizationRequest;
+};
+
+export type CreateJoinRequestResult = CreateJoinRequestResponse['data'];

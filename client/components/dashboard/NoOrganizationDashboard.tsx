@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { JoinClient } from '@/components/dashboard/JoinClient';
 import { CreateOrganizationForm } from '@/components/forms/createOrganizationForm/CreateOrganizationForm';
 import { Button } from '@/components/ui/button/Button';
 
@@ -25,7 +26,7 @@ export function NoOrganizationDashboard() {
     if (mode === 'join') {
         return (
             <section className="flex min-h-105 items-center justify-center rounded-xl border border-dashed border-gray-main bg-round/60 px-4 py-12">
-                join
+                <JoinClient onCancel={() => setMode('empty')} />
             </section>
         );
     }
