@@ -74,7 +74,7 @@ export const JoinClient = ({ onCancel }: JoinClientProps) => {
     };
 
     return (
-        <div className="w-full max-w-2xl rounded-lg bg-white p-5">
+        <div className="w-full rounded-lg bg-white p-5">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <p className="mb-2 text-sm font-medium text-sub-text">Join organization</p>

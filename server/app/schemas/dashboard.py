@@ -23,6 +23,7 @@ class DashboardMembershipSchema(BaseModel):
 
 class DashboardPendingRequestSchema(BaseModel):
     id: int
+    organizationId: int
     organizationName: str
     status: Literal["pending"]
     createdAt: str

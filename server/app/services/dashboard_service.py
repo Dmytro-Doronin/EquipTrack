@@ -6,9 +6,10 @@ from app.schemas.dashboard import (
     DashboardContextSchema,
     DashboardMembershipSchema,
     DashboardOrganizationSchema,
+    DashboardPendingRequestSchema,
     DashboardUserSchema,
 )
-from app.utils.format import format_auth_user
+from app.utils.format import format_auth_user, format_datetime_z
 
 
 class DashboardService:
@@ -27,6 +28,13 @@ class DashboardService:
         active_organization = (
             active_membership.organization if active_membership is not None else None
         )
+        pending_requests = (
+            []
+            if active_membership is not None
+            else self.organization_member_query_repository.find_pending_by_user_id(
+                current_user.id,
+            )
+        )
 
         return DashboardContextSchema(
             user=DashboardUserSchema(**format_auth_user(current_user)),
@@ -42,7 +50,16 @@ class DashboardService:
             )
             if active_membership is not None
             else None,
-            pendingRequests=[],
+            pendingRequests=[
+                DashboardPendingRequestSchema(
+                    id=pending_request.id,
+                    organizationId=pending_request.organization_id,
+                    organizationName=pending_request.organization.name,
+                    status="pending",
+                    createdAt=format_datetime_z(pending_request.created_at),
+                )
+                for pending_request in pending_requests
+            ],
             stats=None,
             recentActivity=[],
         )

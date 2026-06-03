@@ -12,6 +12,11 @@ class OrganizationSchema(BaseModel):
     name: str
 
 
+class OrganizationSearchResponseSchema(BaseModel):
+    success: bool
+    data: list[OrganizationSchema]
+
+
 class OrganizationMembershipSchema(BaseModel):
     role: Literal["owner", "admin", "member"]
     status: Literal["active", "pending"]
@@ -26,3 +31,17 @@ class CreateOrganizationResponseSchema(BaseModel):
     success: bool
     message: str
     data: CreateOrganizationResultSchema
+
+
+class JoinRequestResultSchema(BaseModel):
+    id: int
+    organizationId: int
+    organizationName: str
+    status: Literal["pending"]
+    createdAt: str
+
+
+class JoinRequestResponseSchema(BaseModel):
+    success: bool
+    message: str
+    data: JoinRequestResultSchema

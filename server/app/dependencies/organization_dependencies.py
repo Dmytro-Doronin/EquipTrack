@@ -11,6 +11,9 @@ from app.repositories.command_repositories.organization_member_command_repositor
 from app.repositories.query_repositories.organization_member_query_repository import (
     OrganizationMemberQueryRepository,
 )
+from app.repositories.query_repositories.organization_query_repository import (
+    OrganizationQueryRepository,
+)
 from app.services.organization_service import OrganizationService
 
 
@@ -20,4 +23,5 @@ def get_organization_service(db: Session = Depends(get_db)) -> OrganizationServi
         organization_command_repository=OrganizationCommandRepository(db),
         organization_member_command_repository=OrganizationMemberCommandRepository(db),
         organization_member_query_repository=OrganizationMemberQueryRepository(db),
+        organization_query_repository=OrganizationQueryRepository(db),
     )
