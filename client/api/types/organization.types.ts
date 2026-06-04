@@ -45,3 +45,54 @@ export type CreateJoinRequestResponse = {
 };
 
 export type CreateJoinRequestResult = CreateJoinRequestResponse['data'];
+
+export type JoinRequestUser = {
+    id: number;
+    login?: string | null;
+    email: string;
+    avatarUrl?: string | null;
+};
+
+export type OrganizationJoinRequest = {
+    id: number;
+    organizationId: number;
+    user: JoinRequestUser;
+    status: 'pending';
+    createdAt: string;
+};
+
+export type GetJoinRequestsResponse = {
+    success: boolean;
+    data: OrganizationJoinRequest[];
+};
+
+export type ModerateJoinRequestPayload = {
+    organizationId: number;
+    requestId: number;
+};
+
+export type ApproveJoinRequestResponse = {
+    success: boolean;
+    message: string;
+    data: {
+        id: number;
+        organizationId: number;
+        userId: number;
+        role: 'member';
+        status: 'active';
+    };
+};
+
+export type ApproveJoinRequestResult = ApproveJoinRequestResponse['data'];
+
+export type RejectJoinRequestResponse = {
+    success: boolean;
+    message: string;
+    data: {
+        id: number;
+        organizationId: number;
+        status: 'rejected';
+    };
+};
+
+export type RejectJoinRequestResult = RejectJoinRequestResponse['data'];

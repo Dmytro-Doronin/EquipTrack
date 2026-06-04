@@ -1,7 +1,9 @@
 'use client';
 
+import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { DashboardStatePlaceholder } from '@/components/dashboard/DashboardStatePlaceholder';
 import { NoOrganizationDashboard } from '@/components/dashboard/NoOrganizationDashboard';
+import { PendingOrganizationDashboard } from '@/components/dashboard/PendingOrganizationDashboard';
 import { Loader } from '@/components/loader/Loader';
 import { useDashboardPageState } from '@/hooks/custom/useDashboardPageState ';
 
@@ -30,6 +32,21 @@ export const DashboardClientPage = () => {
 
     if (dashboardPageState.dashboardState === 'NO_ORGANIZATION') {
         return <NoOrganizationDashboard />;
+    }
+
+    if (dashboardPageState.dashboardState === 'PENDING_ORGANIZATION_REQUEST') {
+        return (
+            <PendingOrganizationDashboard
+                pendingRequests={dashboardPageState.context.pendingRequests}
+            />
+        );
+    }
+
+    if (
+        dashboardPageState.dashboardState === 'ADMIN_DASHBOARD' &&
+        dashboardPageState.context.activeOrganization
+    ) {
+        return <AdminDashboard organization={dashboardPageState.context.activeOrganization} />;
     }
 
     return <DashboardStatePlaceholder state={dashboardPageState.dashboardState} />;
