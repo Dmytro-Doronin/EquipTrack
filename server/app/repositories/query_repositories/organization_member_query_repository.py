@@ -20,6 +20,23 @@ class OrganizationMemberQueryRepository:
 
         return self.db.scalars(statement).first()
 
+    def find_active_by_user_and_organization(
+        self,
+        user_id: int,
+        organization_id: int,
+    ) -> OrganizationMember | None:
+        statement = (
+            select(OrganizationMember)
+            .options(joinedload(OrganizationMember.organization))
+            .where(
+                OrganizationMember.user_id == user_id,
+                OrganizationMember.organization_id == organization_id,
+                OrganizationMember.status == "active",
+            )
+        )
+
+        return self.db.scalars(statement).first()
+
     def find_pending_by_user_id(self, user_id: int) -> list[OrganizationMember]:
         statement = (
             select(OrganizationMember)
@@ -49,3 +66,31 @@ class OrganizationMemberQueryRepository:
         )
 
         return self.db.scalars(statement).first()
+
+    def find_by_id(self, membership_id: int) -> OrganizationMember | None:
+        statement = (
+            select(OrganizationMember)
+            .options(
+                joinedload(OrganizationMember.organization),
+                joinedload(OrganizationMember.user),
+            )
+            .where(OrganizationMember.id == membership_id)
+        )
+
+        return self.db.scalars(statement).first()
+
+    def find_pending_by_organization_id(
+        self,
+        organization_id: int,
+    ) -> list[OrganizationMember]:
+        statement = (
+            select(OrganizationMember)
+            .options(joinedload(OrganizationMember.user))
+            .where(
+                OrganizationMember.organization_id == organization_id,
+                OrganizationMember.status == "pending",
+            )
+            .order_by(OrganizationMember.created_at.asc())
+        )
+
+        return list(self.db.scalars(statement).all())

@@ -26,3 +26,19 @@ class OrganizationMemberCommandRepository:
         self.db.refresh(membership)
 
         return membership
+
+    def update_status(
+        self,
+        membership: OrganizationMember,
+        status: str,
+    ) -> OrganizationMember:
+        membership.status = status
+
+        self.db.flush()
+        self.db.refresh(membership)
+
+        return membership
+
+    def delete(self, membership: OrganizationMember) -> None:
+        self.db.delete(membership)
+        self.db.flush()

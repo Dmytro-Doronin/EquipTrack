@@ -13,6 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.organization import Organization
+from app.models.user import User
 
 
 class OrganizationMember(Base):
@@ -70,3 +71,5 @@ class OrganizationMember(Base):
     organization: Mapped["Organization"] = relationship(
         back_populates="members",
     )
+
+    user: Mapped["User"] = relationship()

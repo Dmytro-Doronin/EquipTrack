@@ -45,3 +45,49 @@ class JoinRequestResponseSchema(BaseModel):
     success: bool
     message: str
     data: JoinRequestResultSchema
+
+
+class JoinRequestUserSchema(BaseModel):
+    id: int
+    login: str
+    email: str
+    avatarUrl: str | None = None
+
+
+class PendingJoinRequestSchema(BaseModel):
+    id: int
+    organizationId: int
+    user: JoinRequestUserSchema
+    status: Literal["pending"]
+    createdAt: str
+
+
+class PendingJoinRequestsResponseSchema(BaseModel):
+    success: bool
+    data: list[PendingJoinRequestSchema]
+
+
+class ApproveJoinRequestResultSchema(BaseModel):
+    id: int
+    organizationId: int
+    userId: int
+    role: Literal["member"]
+    status: Literal["active"]
+
+
+class ApproveJoinRequestResponseSchema(BaseModel):
+    success: bool
+    message: str
+    data: ApproveJoinRequestResultSchema
+
+
+class RejectJoinRequestResultSchema(BaseModel):
+    id: int
+    organizationId: int
+    status: Literal["rejected"]
+
+
+class RejectJoinRequestResponseSchema(BaseModel):
+    success: bool
+    message: str
+    data: RejectJoinRequestResultSchema
