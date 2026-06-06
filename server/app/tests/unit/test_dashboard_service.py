@@ -1,0 +1,177 @@
+from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+from app.services.dashboard_service import DashboardService
+
+
+def make_dashboard_service():
+    dependencies = {
+        "activity_log_query_repository": Mock(),
+        "asset_query_repository": Mock(),
+        "asset_transfer_query_repository": Mock(),
+        "organization_member_query_repository": Mock(),
+    }
+
+    return DashboardService(**dependencies), dependencies
+
+
+def make_user():
+    return SimpleNamespace(
+        id=5,
+        login="john",
+        email="john@example.com",
+        avatar_url=None,
+        role="user",
+    )
+
+
+def make_organization():
+    return SimpleNamespace(
+        id=1,
+        name="Albert Heijn Haarlem",
+    )
+
+
+def make_active_membership(role: str = "member"):
+    organization = make_organization()
+
+    return SimpleNamespace(
+        id=9,
+        organization_id=organization.id,
+        organization=organization,
+        role=role,
+        status="active",
+    )
+
+
+def test_get_context_enriches_active_member_dashboard_with_real_rows():
+    dashboard_service, dependencies = make_dashboard_service()
+    now = datetime(2026, 6, 3, 10, 0, tzinfo=UTC)
+    user = make_user()
+    membership = make_active_membership()
+    asset = SimpleNamespace(
+        id=1,
+        name="Dell XPS 15",
+        category="Laptop",
+        serial_number="DXPS-001",
+        status="assigned",
+        assigned_at=now,
+        due_date=None,
+        created_at=now - timedelta(days=1),
+    )
+    transfer = SimpleNamespace(
+        id=7,
+        asset_id=asset.id,
+        asset=asset,
+        from_user=SimpleNamespace(id=2, login="admin"),
+        to_user=user,
+        status="pending",
+        created_at=now,
+    )
+    activity = SimpleNamespace(
+        id=15,
+        type="asset_assigned",
+        message="Dell XPS 15 was assigned to you",
+        created_at=now,
+    )
+
+    dependencies[
+        "organization_member_query_repository"
+    ].find_active_by_user_id.return_value = membership
+    dependencies["asset_query_repository"].find_assigned_to_user.return_value = [asset]
+    dependencies["asset_query_repository"].count_assigned_to_user.return_value = 3
+    dependencies["asset_query_repository"].count_overdue_assigned_to_user.return_value = 0
+    dependencies["asset_transfer_query_repository"].find_pending_for_user.return_value = [
+        transfer,
+    ]
+    dependencies[
+        "asset_transfer_query_repository"
+    ].count_pending_for_user.return_value = 1
+    dependencies["activity_log_query_repository"].find_recent_for_user.return_value = [
+        activity,
+    ]
+
+    result = dashboard_service.get_context(user)
+
+    assert result.activeOrganization is not None
+    assert result.activeOrganization.name == membership.organization.name
+    assert result.membership is not None
+    assert result.membership.role == "member"
+    assert result.stats.assignedAssets == 3
+    assert result.stats.pendingTransfers == 1
+    assert result.stats.overdueReturns == 0
+    assert result.myAssets[0].name == asset.name
+    assert result.myAssets[0].serialNumber == asset.serial_number
+    assert result.myTransfers[0].assetName == asset.name
+    assert result.myTransfers[0].fromUser is not None
+    assert result.myTransfers[0].fromUser.login == "admin"
+    assert result.recentActivity[0].message == activity.message
+
+    dependencies["asset_query_repository"].find_assigned_to_user.assert_called_once_with(
+        organization_id=membership.organization_id,
+        user_id=user.id,
+    )
+    dependencies[
+        "asset_transfer_query_repository"
+    ].find_pending_for_user.assert_called_once_with(
+        organization_id=membership.organization_id,
+        user_id=user.id,
+    )
+    dependencies["activity_log_query_repository"].find_recent_for_user.assert_called_once_with(
+        organization_id=membership.organization_id,
+        user_id=user.id,
+    )
+
+
+def test_get_context_leaves_admin_dashboard_member_lists_empty():
+    dashboard_service, dependencies = make_dashboard_service()
+    user = make_user()
+    membership = make_active_membership(role="admin")
+
+    dependencies[
+        "organization_member_query_repository"
+    ].find_active_by_user_id.return_value = membership
+
+    result = dashboard_service.get_context(user)
+
+    assert result.membership is not None
+    assert result.membership.role == "admin"
+    assert result.stats.assignedAssets == 0
+    assert result.myAssets == []
+    assert result.myTransfers == []
+    assert result.recentActivity == []
+    dependencies["asset_query_repository"].find_assigned_to_user.assert_not_called()
+    dependencies["asset_transfer_query_repository"].find_pending_for_user.assert_not_called()
+    dependencies["activity_log_query_repository"].find_recent_for_user.assert_not_called()
+
+
+def test_get_context_preserves_pending_request_state_without_member_queries():
+    dashboard_service, dependencies = make_dashboard_service()
+    user = make_user()
+    organization = make_organization()
+    pending_request = SimpleNamespace(
+        id=4,
+        organization_id=organization.id,
+        organization=organization,
+        status="pending",
+        created_at=datetime(2026, 6, 2, 9, 0, tzinfo=UTC),
+    )
+
+    dependencies[
+        "organization_member_query_repository"
+    ].find_active_by_user_id.return_value = None
+    dependencies[
+        "organization_member_query_repository"
+    ].find_pending_by_user_id.return_value = [pending_request]
+
+    result = dashboard_service.get_context(user)
+
+    assert result.activeOrganization is None
+    assert result.membership is None
+    assert result.pendingRequests[0].organizationName == organization.name
+    assert result.stats.pendingTransfers == 0
+    assert result.myAssets == []
+    dependencies["asset_query_repository"].find_assigned_to_user.assert_not_called()
+    dependencies["asset_transfer_query_repository"].find_pending_for_user.assert_not_called()
+    dependencies["activity_log_query_repository"].find_recent_for_user.assert_not_called()
