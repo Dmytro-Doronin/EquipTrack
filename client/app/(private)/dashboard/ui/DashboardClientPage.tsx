@@ -2,6 +2,7 @@
 
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { DashboardStatePlaceholder } from '@/components/dashboard/DashboardStatePlaceholder';
+import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
 import { NoOrganizationDashboard } from '@/components/dashboard/NoOrganizationDashboard';
 import { PendingOrganizationDashboard } from '@/components/dashboard/PendingOrganizationDashboard';
 import { Loader } from '@/components/loader/Loader';
@@ -47,6 +48,18 @@ export const DashboardClientPage = () => {
         dashboardPageState.context.activeOrganization
     ) {
         return <AdminDashboard organization={dashboardPageState.context.activeOrganization} />;
+    }
+
+    if (
+        dashboardPageState.dashboardState === 'MEMBER_DASHBOARD' &&
+        dashboardPageState.context.activeOrganization
+    ) {
+        return (
+            <MemberDashboard
+                context={dashboardPageState.context}
+                organization={dashboardPageState.context.activeOrganization}
+            />
+        );
     }
 
     return <DashboardStatePlaceholder state={dashboardPageState.dashboardState} />;

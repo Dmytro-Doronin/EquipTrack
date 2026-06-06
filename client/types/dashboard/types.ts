@@ -21,8 +21,48 @@ export type DashboardContext = {
         status: 'pending';
         createdAt: string;
     }>;
-    stats: null;
-    recentActivity: [];
+    stats: DashboardStats;
+    myAssets: DashboardMemberAsset[];
+    myTransfers: DashboardMemberTransfer[];
+    recentActivity: DashboardRecentActivity[];
+};
+
+export type DashboardStats = {
+    assignedAssets: number;
+    pendingTransfers: number;
+    overdueReturns: number;
+};
+
+export type DashboardMemberAsset = {
+    id: number;
+    name: string;
+    category: string;
+    serialNumber: string;
+    status: string;
+    assignedAt: string;
+    dueDate?: string | null;
+};
+
+export type DashboardTransferUser = {
+    id: number;
+    login: string;
+};
+
+export type DashboardMemberTransfer = {
+    id: number;
+    assetId: number;
+    assetName: string;
+    fromUser?: DashboardTransferUser | null;
+    toUser?: DashboardTransferUser | null;
+    status: string;
+    createdAt: string;
+};
+
+export type DashboardRecentActivity = {
+    id: number;
+    type: string;
+    message: string;
+    createdAt: string;
 };
 
 export type DashboardState =
