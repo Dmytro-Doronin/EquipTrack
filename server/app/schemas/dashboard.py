@@ -29,13 +29,53 @@ class DashboardPendingRequestSchema(BaseModel):
     createdAt: str
 
 
+class DashboardStatsSchema(BaseModel):
+    assignedAssets: int = 0
+    pendingTransfers: int = 0
+    overdueReturns: int = 0
+
+
+class DashboardAssetItemSchema(BaseModel):
+    id: int
+    name: str
+    category: str
+    serialNumber: str
+    status: str
+    assignedAt: str
+    dueDate: str | None = None
+
+
+class DashboardTransferUserSchema(BaseModel):
+    id: int
+    login: str
+
+
+class DashboardTransferItemSchema(BaseModel):
+    id: int
+    assetId: int
+    assetName: str
+    fromUser: DashboardTransferUserSchema | None = None
+    toUser: DashboardTransferUserSchema | None = None
+    status: str
+    createdAt: str
+
+
+class DashboardActivityItemSchema(BaseModel):
+    id: int
+    type: str
+    message: str
+    createdAt: str
+
+
 class DashboardContextSchema(BaseModel):
     user: DashboardUserSchema
     activeOrganization: DashboardOrganizationSchema | None = None
     membership: DashboardMembershipSchema | None = None
     pendingRequests: list[DashboardPendingRequestSchema] = Field(default_factory=list)
-    stats: None = None
-    recentActivity: list[dict] = Field(default_factory=list)
+    stats: DashboardStatsSchema = Field(default_factory=DashboardStatsSchema)
+    myAssets: list[DashboardAssetItemSchema] = Field(default_factory=list)
+    myTransfers: list[DashboardTransferItemSchema] = Field(default_factory=list)
+    recentActivity: list[DashboardActivityItemSchema] = Field(default_factory=list)
 
 
 class DashboardResponseSchema(BaseModel):

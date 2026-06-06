@@ -5,6 +5,9 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.oauth_account import OAuthAccount
 from app.models.organization import Organization
 from app.models.organization_member import OrganizationMember
+from app.models.asset import Asset
+from app.models.asset_transfer import AssetTransfer
+from app.models.activity_log import ActivityLog
 
 __all__ = [
     "User",
@@ -14,5 +17,8 @@ __all__ = [
     "OAuthAccount",
     "Organization",
     "OrganizationMember",
+    "Asset",
+    "AssetTransfer",
+    "ActivityLog",
 ]
 
