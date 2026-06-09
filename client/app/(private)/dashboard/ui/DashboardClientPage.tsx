@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
+import { AdminDashboard } from '@/components/dashboard/adminDashboard/AdminDashboard';
 import { DashboardStatePlaceholder } from '@/components/dashboard/DashboardStatePlaceholder';
 import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
 import { NoOrganizationDashboard } from '@/components/dashboard/NoOrganizationDashboard';
