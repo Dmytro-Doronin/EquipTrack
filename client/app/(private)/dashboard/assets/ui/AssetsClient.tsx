@@ -1,3 +1,6 @@
+import { AssetTable } from '@/components/assets/AssetTable/AssetTable';
+import { mockAssets } from '@/components/assets/model/mockAssets';
+
 export const AssetsClient = () => {
-    return <div>Assets</div>;
+    return <AssetTable assets={mockAssets} />;
 };
