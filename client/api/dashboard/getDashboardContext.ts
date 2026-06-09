@@ -4,12 +4,26 @@ import { apiClient } from '@/api/apiClient';
 
 type DashboardContextPayload = Omit<
     DashboardContext,
-    'myAssets' | 'myTransfers' | 'pendingRequests' | 'recentActivity' | 'stats'
+    | 'latestAssets'
+    | 'membersPreview'
+    | 'myAssets'
+    | 'myTransfers'
+    | 'pendingRequests'
+    | 'recentActivity'
+    | 'stats'
 > &
     Partial<
-        Pick<DashboardContext, 'myAssets' | 'myTransfers' | 'pendingRequests' | 'recentActivity'>
+        Pick<
+            DashboardContext,
+            | 'latestAssets'
+            | 'membersPreview'
+            | 'myAssets'
+            | 'myTransfers'
+            | 'pendingRequests'
+            | 'recentActivity'
+        >
     > & {
-        stats?: DashboardContext['stats'] | null;
+        stats?: Partial<DashboardContext['stats']> | null;
     };
 
 type DashboardContextResponse =
@@ -31,23 +45,41 @@ export const getDashboardContext = async (): Promise<DashboardContext> => {
 };
 
 const normalizeDashboardContext = (context: DashboardContextPayload): DashboardContext => {
+    const latestAssets = context.latestAssets ?? [];
+    const membersPreview = context.membersPreview ?? [];
     const myAssets = context.myAssets ?? [];
     const myTransfers = context.myTransfers ?? [];
 
     return {
         ...context,
+        latestAssets,
+        membersPreview,
         myAssets,
         myTransfers,
         pendingRequests: context.pendingRequests ?? [],
         recentActivity: context.recentActivity ?? [],
-        stats: context.stats ?? {
-            assignedAssets: myAssets.length,
-            overdueReturns: myAssets.filter((asset) => isOverdue(asset.dueDate)).length,
-            pendingTransfers: myTransfers.filter((transfer) => transfer.status === 'pending')
-                .length,
-        },
+        stats: normalizeDashboardStats(context.stats, myAssets, myTransfers),
     };
 };
+
+const normalizeDashboardStats = (
+    stats: Partial<DashboardContext['stats']> | null | undefined,
+    myAssets: DashboardContext['myAssets'],
+    myTransfers: DashboardContext['myTransfers'],
+): DashboardContext['stats'] => ({
+    assignedAssets: stats?.assignedAssets ?? myAssets.length,
+    availableAssets: stats?.availableAssets ?? 0,
+    lostAssets: stats?.lostAssets ?? 0,
+    maintenanceAssets: stats?.maintenanceAssets ?? 0,
+    members: stats?.members ?? 0,
+    overdueReturns:
+        stats?.overdueReturns ?? myAssets.filter((asset) => isOverdue(asset.dueDate)).length,
+    pendingJoinRequests: stats?.pendingJoinRequests ?? 0,
+    pendingTransfers:
+        stats?.pendingTransfers ??
+        myTransfers.filter((transfer) => transfer.status === 'pending').length,
+    totalAssets: stats?.totalAssets ?? 0,
+});
 
 const isOverdue = (dueDate?: string | null): boolean => {
     if (!dueDate) {

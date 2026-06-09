@@ -22,6 +22,8 @@ export type DashboardContext = {
         createdAt: string;
     }>;
     stats: DashboardStats;
+    latestAssets: DashboardAdminAsset[];
+    membersPreview: DashboardOrganizationMemberPreview[];
     myAssets: DashboardMemberAsset[];
     myTransfers: DashboardMemberTransfer[];
     recentActivity: DashboardRecentActivity[];
@@ -29,8 +31,29 @@ export type DashboardContext = {
 
 export type DashboardStats = {
     assignedAssets: number;
+    availableAssets: number;
+    lostAssets: number;
+    maintenanceAssets: number;
+    members: number;
     pendingTransfers: number;
+    pendingJoinRequests: number;
     overdueReturns: number;
+    totalAssets: number;
+};
+
+export type DashboardAssetAssignee = {
+    id: number;
+    login: string;
+};
+
+export type DashboardAdminAsset = {
+    id: number;
+    name: string;
+    category: string;
+    serialNumber: string;
+    status: string;
+    assignedTo?: DashboardAssetAssignee | null;
+    createdAt: string;
 };
 
 export type DashboardMemberAsset = {
@@ -56,6 +79,16 @@ export type DashboardMemberTransfer = {
     toUser?: DashboardTransferUser | null;
     status: string;
     createdAt: string;
+};
+
+export type DashboardOrganizationMemberPreview = {
+    id: number;
+    login: string;
+    email: string;
+    avatarUrl?: string | null;
+    role: 'owner' | 'admin' | 'member';
+    status: 'active' | 'pending';
+    joinedAt: string;
 };
 
 export type DashboardRecentActivity = {

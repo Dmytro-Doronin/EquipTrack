@@ -47,7 +47,12 @@ export const DashboardClientPage = () => {
         dashboardPageState.dashboardState === 'ADMIN_DASHBOARD' &&
         dashboardPageState.context.activeOrganization
     ) {
-        return <AdminDashboard organization={dashboardPageState.context.activeOrganization} />;
+        return (
+            <AdminDashboard
+                context={dashboardPageState.context}
+                organization={dashboardPageState.context.activeOrganization}
+            />
+        );
     }
 
     if (
