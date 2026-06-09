@@ -29,6 +29,10 @@ const summaryCards = [
 ] as const;
 
 export function MemberDashboard({ context, organization }: MemberDashboardProps) {
+    const pendingTransfers = context.myTransfers.filter(
+        (transfer) => transfer.status === 'pending',
+    );
+
     return (
         <section className="space-y-5">
             <div className="rounded-[12px] border border-gray-main bg-white p-6">
@@ -51,7 +55,7 @@ export function MemberDashboard({ context, organization }: MemberDashboardProps)
             </div>
 
             <MemberAssetsList assets={context.myAssets} />
-            <MemberTransfersList transfers={context.myTransfers} />
+            <MemberTransfersList transfers={pendingTransfers} />
             <RecentActivityList recentActivity={context.recentActivity} />
         </section>
     );
