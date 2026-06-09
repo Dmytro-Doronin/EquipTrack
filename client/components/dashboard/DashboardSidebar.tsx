@@ -12,7 +12,6 @@ import DashboardIcon from '@/components/icons/DashboardIcon';
 import EquipmentIcon from '@/components/icons/EquipmentIcon';
 import HelpIcon from '@/components/icons/HelpIcon';
 import SettingsIcon from '@/components/icons/SettingsIcon';
-import UserDashboardIcon from '@/components/icons/UserDashboardIcon';
 import { Button } from '@/components/ui/button/Button';
 export const DashboardSidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -88,19 +87,19 @@ export const DashboardSidebar = () => {
                                 label="Dashboard"
                                 isActive={pathname === '/dashboard'}
                             />
+                            {/*<SidebarNavItem*/}
+                            {/*    href="/dashboard/users"*/}
+                            {/*    icon={<UserDashboardIcon />}*/}
+                            {/*    isCollapsed={isCollapsed}*/}
+                            {/*    isActive={isNavItemActive('/dashboard/users')}*/}
+                            {/*    label="Users"*/}
+                            {/*/>*/}
                             <SidebarNavItem
-                                href="/dashboard/users"
-                                icon={<UserDashboardIcon />}
-                                isCollapsed={isCollapsed}
-                                isActive={isNavItemActive('/dashboard/users')}
-                                label="Users"
-                            />
-                            <SidebarNavItem
-                                href="/dashboard/equipments"
+                                href="/dashboard/assets"
                                 icon={<EquipmentIcon />}
                                 isCollapsed={isCollapsed}
-                                isActive={isNavItemActive('/dashboard/equipments')}
-                                label="Equipments"
+                                isActive={isNavItemActive('/dashboard/assets')}
+                                label="Assets"
                             />
                         </div>
                     </section>
