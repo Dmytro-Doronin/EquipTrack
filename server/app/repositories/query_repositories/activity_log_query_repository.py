@@ -25,3 +25,17 @@ class ActivityLogQueryRepository:
         )
 
         return list(self.db.scalars(statement).all())
+
+    def find_recent_by_organization(
+        self,
+        organization_id: int,
+        limit: int = 10,
+    ) -> list[ActivityLog]:
+        statement = (
+            select(ActivityLog)
+            .where(ActivityLog.organization_id == organization_id)
+            .order_by(ActivityLog.created_at.desc())
+            .limit(limit)
+        )
+
+        return list(self.db.scalars(statement).all())

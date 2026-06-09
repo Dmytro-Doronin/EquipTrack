@@ -30,7 +30,13 @@ class DashboardPendingRequestSchema(BaseModel):
 
 
 class DashboardStatsSchema(BaseModel):
+    totalAssets: int = 0
     assignedAssets: int = 0
+    availableAssets: int = 0
+    maintenanceAssets: int = 0
+    lostAssets: int = 0
+    members: int = 0
+    pendingJoinRequests: int = 0
     pendingTransfers: int = 0
     overdueReturns: int = 0
 
@@ -50,6 +56,21 @@ class DashboardTransferUserSchema(BaseModel):
     login: str
 
 
+class DashboardAssignedUserSchema(BaseModel):
+    id: int
+    login: str
+
+
+class DashboardLatestAssetItemSchema(BaseModel):
+    id: int
+    name: str
+    category: str
+    serialNumber: str
+    status: str
+    assignedTo: DashboardAssignedUserSchema | None = None
+    createdAt: str
+
+
 class DashboardTransferItemSchema(BaseModel):
     id: int
     assetId: int
@@ -67,12 +88,24 @@ class DashboardActivityItemSchema(BaseModel):
     createdAt: str
 
 
+class DashboardMemberPreviewItemSchema(BaseModel):
+    id: int
+    login: str
+    email: EmailStr
+    avatarUrl: str | None = None
+    role: Literal["owner", "admin", "member"]
+    status: Literal["active", "pending"]
+    joinedAt: str
+
+
 class DashboardContextSchema(BaseModel):
     user: DashboardUserSchema
     activeOrganization: DashboardOrganizationSchema | None = None
     membership: DashboardMembershipSchema | None = None
     pendingRequests: list[DashboardPendingRequestSchema] = Field(default_factory=list)
     stats: DashboardStatsSchema = Field(default_factory=DashboardStatsSchema)
+    latestAssets: list[DashboardLatestAssetItemSchema] = Field(default_factory=list)
+    membersPreview: list[DashboardMemberPreviewItemSchema] = Field(default_factory=list)
     myAssets: list[DashboardAssetItemSchema] = Field(default_factory=list)
     myTransfers: list[DashboardTransferItemSchema] = Field(default_factory=list)
     recentActivity: list[DashboardActivityItemSchema] = Field(default_factory=list)

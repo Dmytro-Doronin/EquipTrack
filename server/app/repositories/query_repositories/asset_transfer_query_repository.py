@@ -50,3 +50,11 @@ class AssetTransferQueryRepository:
         )
 
         return self.db.scalar(statement) or 0
+
+    def count_pending_by_organization(self, organization_id: int) -> int:
+        statement = select(func.count()).select_from(AssetTransfer).where(
+            AssetTransfer.organization_id == organization_id,
+            AssetTransfer.status == "pending",
+        )
+
+        return self.db.scalar(statement) or 0

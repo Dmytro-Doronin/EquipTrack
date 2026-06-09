@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from app.models.activity_log import ActivityLog
 from app.models.asset import Asset
 from app.models.asset_transfer import AssetTransfer
+from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.repositories.query_repositories.activity_log_query_repository import (
     ActivityLogQueryRepository,
@@ -18,8 +19,11 @@ from app.repositories.query_repositories.organization_member_query_repository im
 )
 from app.schemas.dashboard import (
     DashboardActivityItemSchema,
+    DashboardAssignedUserSchema,
     DashboardAssetItemSchema,
     DashboardContextSchema,
+    DashboardLatestAssetItemSchema,
+    DashboardMemberPreviewItemSchema,
     DashboardMembershipSchema,
     DashboardOrganizationSchema,
     DashboardPendingRequestSchema,
@@ -68,6 +72,14 @@ class DashboardService:
             if active_membership is not None and active_membership.role == "member"
             else {}
         )
+        admin_dashboard_data = (
+            self._get_admin_dashboard_data(
+                organization_id=active_membership.organization_id,
+            )
+            if active_membership is not None
+            and active_membership.role in {"owner", "admin"}
+            else {}
+        )
 
         return DashboardContextSchema(
             user=DashboardUserSchema(**format_auth_user(current_user)),
@@ -94,7 +106,80 @@ class DashboardService:
                 for pending_request in pending_requests
             ],
             **member_dashboard_data,
+            **admin_dashboard_data,
         )
+
+    def _get_admin_dashboard_data(
+        self,
+        organization_id: int,
+    ) -> dict:
+        latest_assets = self.asset_query_repository.find_latest_by_organization(
+            organization_id=organization_id,
+        )
+        members_preview = (
+            self.organization_member_query_repository.find_active_by_organization_id(
+                organization_id=organization_id,
+            )
+        )
+        recent_activity = self.activity_log_query_repository.find_recent_by_organization(
+            organization_id=organization_id,
+        )
+
+        return {
+            "stats": DashboardStatsSchema(
+                totalAssets=self.asset_query_repository.count_by_organization(
+                    organization_id=organization_id,
+                ),
+                assignedAssets=self.asset_query_repository.count_by_organization_and_status(
+                    organization_id=organization_id,
+                    status="assigned",
+                ),
+                availableAssets=self.asset_query_repository.count_by_organization_and_status(
+                    organization_id=organization_id,
+                    status="available",
+                ),
+                maintenanceAssets=(
+                    self.asset_query_repository.count_by_organization_and_status(
+                        organization_id=organization_id,
+                        status="maintenance",
+                    )
+                ),
+                lostAssets=self.asset_query_repository.count_by_organization_and_status(
+                    organization_id=organization_id,
+                    status="lost",
+                ),
+                members=(
+                    self.organization_member_query_repository.count_by_organization_and_status(
+                        organization_id=organization_id,
+                        status="active",
+                    )
+                ),
+                pendingJoinRequests=(
+                    self.organization_member_query_repository.count_by_organization_and_status(
+                        organization_id=organization_id,
+                        status="pending",
+                    )
+                ),
+                pendingTransfers=(
+                    self.asset_transfer_query_repository.count_pending_by_organization(
+                        organization_id=organization_id,
+                    )
+                ),
+                overdueReturns=self.asset_query_repository.count_overdue_by_organization(
+                    organization_id=organization_id,
+                    now=datetime.now(UTC),
+                ),
+            ),
+            "latestAssets": [
+                self._format_latest_asset(asset) for asset in latest_assets
+            ],
+            "membersPreview": [
+                self._format_member_preview(member) for member in members_preview
+            ],
+            "recentActivity": [
+                self._format_activity(activity) for activity in recent_activity
+            ],
+        }
 
     def _get_member_dashboard_data(
         self,
@@ -143,6 +228,31 @@ class DashboardService:
             ],
         }
 
+    def _format_latest_asset(self, asset: Asset) -> DashboardLatestAssetItemSchema:
+        return DashboardLatestAssetItemSchema(
+            id=asset.id,
+            name=asset.name,
+            category=asset.category,
+            serialNumber=asset.serial_number,
+            status=asset.status,
+            assignedTo=self._format_assigned_user(asset.assigned_to_user),
+            createdAt=format_datetime_z(asset.created_at),
+        )
+
+    def _format_member_preview(
+        self,
+        member: OrganizationMember,
+    ) -> DashboardMemberPreviewItemSchema:
+        return DashboardMemberPreviewItemSchema(
+            id=member.user.id,
+            login=member.user.login,
+            email=member.user.email,
+            avatarUrl=member.user.avatar_url,
+            role=member.role,
+            status=member.status,
+            joinedAt=format_datetime_z(member.created_at),
+        )
+
     def _format_asset(self, asset: Asset) -> DashboardAssetItemSchema:
         assigned_at = asset.assigned_at or asset.created_at
 
@@ -186,6 +296,18 @@ class DashboardService:
             return None
 
         return DashboardTransferUserSchema(
+            id=user.id,
+            login=user.login,
+        )
+
+    def _format_assigned_user(
+        self,
+        user: User | None,
+    ) -> DashboardAssignedUserSchema | None:
+        if user is None:
+            return None
+
+        return DashboardAssignedUserSchema(
             id=user.id,
             login=user.login,
         )
