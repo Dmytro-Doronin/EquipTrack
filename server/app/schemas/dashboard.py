@@ -46,6 +46,7 @@ class DashboardAssetItemSchema(BaseModel):
     name: str
     category: str
     serialNumber: str
+    imageUrl: str | None = None
     status: str
     assignedAt: str
     dueDate: str | None = None
@@ -66,6 +67,7 @@ class DashboardLatestAssetItemSchema(BaseModel):
     name: str
     category: str
     serialNumber: str
+    imageUrl: str | None = None
     status: str
     assignedTo: DashboardAssignedUserSchema | None = None
     createdAt: str
