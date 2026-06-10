@@ -47,6 +47,15 @@ class AssetQueryRepository:
 
         return list(self.db.scalars(statement).all())
 
+    def find_by_id(self, asset_id: int) -> Asset | None:
+        statement = (
+            select(Asset)
+            .options(joinedload(Asset.assigned_to_user))
+            .where(Asset.id == asset_id)
+        )
+
+        return self.db.scalars(statement).first()
+
     def count_assigned_to_user(
         self,
         organization_id: int,
