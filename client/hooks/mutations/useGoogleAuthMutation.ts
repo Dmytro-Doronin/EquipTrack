@@ -19,7 +19,8 @@ const getSafeRedirectPath = (nextUrl: string | null) => {
 export function useGoogleAuthMutation() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+    const setUser = useAuthStore((state) => state.setUser);
     const notifyError = useNotificationStore((state) => state.error);
 
     return useMutation({
@@ -39,10 +40,8 @@ export function useGoogleAuthMutation() {
             return result.data;
         },
         onSuccess: (data) => {
-            setAuth({
-                user: data.user,
-                accessToken: data.accessToken,
-            });
+            setUser(data.user);
+            setAccessToken(data.accessToken);
             setAuthHint();
             router.replace(getSafeRedirectPath(searchParams.get('next')));
         },
