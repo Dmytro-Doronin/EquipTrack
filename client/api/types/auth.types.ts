@@ -1,4 +1,10 @@
-import { User } from '@/actions/types';
+export type User = {
+    id: number;
+    login: string;
+    email: string;
+    avatarUrl: string | null;
+    role: string;
+};
 
 export type SignUpType = {
     login: string;

@@ -1,7 +1,8 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
+import type { User } from '@/api/types/auth.types';
+
 import { refreshSessionAction } from '@/actions/refreshSessionAction';
-import { User } from '@/actions/types';
 import { useAuthStore } from '@/stores/auth.store';
 import { clearAuthHint } from '@/utils/authHint';
 
