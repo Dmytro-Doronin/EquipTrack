@@ -6,20 +6,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
-import { resetPasswordConfirm } from '@/api/auth/authApi';
 import { ResetPasswordFormValues } from '@/components/forms/resetPasswordForm/resetPasswordForm.types';
 import { resetPasswordSchema } from '@/components/forms/resetPasswordForm/resetPasswordForm.validation';
 import { Loader } from '@/components/loader/Loader';
 import { PasswordStrengthIndicator } from '@/components/passwordStrengthIndicator/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useResetPasswordConfirmMutation } from '@/hooks/mutations/useResetPasswordConfirmMutation';
 
 import KeyPass from '../../icons/KeyPass';
 import Lock from '../../icons/Lock';
 
 export const ResetPasswordForm = () => {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const resetPasswordMutation = useResetPasswordConfirmMutation();
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token') ?? '';
@@ -46,41 +46,35 @@ export const ResetPasswordForm = () => {
             return;
         }
 
-        setIsLoading(true);
+        const result = await resetPasswordMutation.mutateAsync({
+            token,
+            password: data.password,
+            confirmPassword: data.confirmPassword,
+        });
 
-        try {
-            const result = await resetPasswordConfirm({
-                token,
-                password: data.password,
-                confirmPassword: data.confirmPassword,
-            });
+        if (!result.success) {
+            let hasFieldError = false;
 
-            if (!result.success) {
-                let hasFieldError = false;
+            if (result.errors) {
+                Object.entries(result.errors).forEach(([, messages]) => {
+                    if (!messages?.[0]) {
+                        return;
+                    }
 
-                if (result.errors) {
-                    Object.entries(result.errors).forEach(([, messages]) => {
-                        if (!messages?.[0]) {
-                            return;
-                        }
-
-                        hasFieldError = true;
-                        setServerError(messages[0]);
-                    });
-                }
-
-                if (!hasFieldError) {
-                    setServerError(result.message ?? 'Something went wrong');
-                }
-
-                return;
+                    hasFieldError = true;
+                    setServerError(messages[0]);
+                });
             }
 
-            reset();
-            router.push('/reset-password/success');
-        } finally {
-            setIsLoading(false);
+            if (!hasFieldError) {
+                setServerError(result.message ?? 'Something went wrong');
+            }
+
+            return;
         }
+
+        reset();
+        router.push('/reset-password/success');
     };
 
     return (
@@ -118,8 +112,8 @@ export const ResetPasswordForm = () => {
 
             {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
 
-            <Button className="mb-5" fullWidth disabled={isLoading || !token}>
-                {isLoading ? 'Changing password...' : 'Change Password'}
+            <Button className="mb-5" fullWidth disabled={resetPasswordMutation.isPending || !token}>
+                {resetPasswordMutation.isPending ? 'Changing password...' : 'Change Password'}
             </Button>
 
             {!token && (
@@ -128,7 +122,7 @@ export const ResetPasswordForm = () => {
                 </Button>
             )}
 
-            {isLoading && <Loader />}
+            {resetPasswordMutation.isPending && <Loader />}
         </form>
     );
 };
