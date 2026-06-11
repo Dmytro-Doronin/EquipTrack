@@ -29,6 +29,11 @@ export const AuthBootstrap = ({ children }: PropsWithChildren) => {
 
             if (!hasAuthHint()) {
                 clearAuth();
+
+                if (isProtectedPath(pathname)) {
+                    router.replace('/signin');
+                }
+
                 return;
             }
 
