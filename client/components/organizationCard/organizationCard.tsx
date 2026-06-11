@@ -1,7 +1,7 @@
 'use client';
 
-import { OrganizationSearchResult } from '@/api/types/organization.types';
 import { Button } from '@/components/ui/button/Button';
+import { OrganizationSearchResult } from '@/shared/api/types/organization.types';
 
 type OrganizationCardProps = {
     disabled?: boolean;

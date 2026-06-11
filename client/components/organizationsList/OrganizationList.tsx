@@ -1,7 +1,7 @@
 'use client';
 
-import { OrganizationSearchResult } from '@/api/types/organization.types';
 import { OrganizationCard } from '@/components/organizationCard/organizationCard';
+import { OrganizationSearchResult } from '@/shared/api/types/organization.types';
 
 type OrganizationListType = {
     disabled?: boolean;

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { BackendValidationErrorResponse } from '@/api/types/type';
 import { CreateOrganizationFormValues } from '@/components/forms/createOrganizationForm/createOrganizationForm.types';
 import { createOrganizationSchema } from '@/components/forms/createOrganizationForm/createOrganizationForm.validation';
 import UsersIcon from '@/components/icons/UsersIcon';
@@ -14,6 +13,7 @@ import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useCreateOrganizationMutation } from '@/hooks/mutations/useCreateOrganizationMutation';
+import { BackendValidationErrorResponse } from '@/shared/api/types/type';
 import { getErrorMessage } from '@/utils/ErrorUtil';
 
 type CreateOrganizationFormProps = {

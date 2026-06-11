@@ -1,7 +1,7 @@
 import { cva, VariantProps } from 'class-variance-authority';
 import Image from 'next/image';
 
-import type { User } from '@/api/types/auth.types';
+import type { User } from '@/shared/api/types/auth.types';
 
 export const userLoginTextVariants = cva('truncate text-sm font-semibold text-start', {
     variants: {
