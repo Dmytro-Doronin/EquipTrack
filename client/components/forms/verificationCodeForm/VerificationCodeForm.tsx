@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation';
 import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-import { confirmSignupCode } from '@/api/auth/authApi';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
+import { useConfirmSignupCodeMutation } from '@/hooks/mutations/useConfirmSignupCodeMutation';
 import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
@@ -115,7 +115,7 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
         const router = useRouter();
         const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
         const [codeError, setCodeError] = useState<string | null>(null);
-        const [isSubmitting, setIsSubmitting] = useState(false);
+        const confirmSignupCodeMutation = useConfirmSignupCodeMutation();
         const finalErrorMessage = errorMessage ?? codeError;
         const email = useSignupFlowStore((state) => state.email);
         const code = normalizeCode(isControlled ? value : uncontrolledValue, length);
@@ -159,14 +159,12 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
 
             onSubmit?.(code);
 
-            setIsSubmitting(true);
-
             try {
                 const formData = new FormData();
                 formData.append('email', email);
                 formData.append('code', code);
 
-                const result = await confirmSignupCode(formData);
+                const result = await confirmSignupCodeMutation.mutateAsync(formData);
 
                 if (!result.success) {
                     const codeMessage = result.errors?.code?.[0];
@@ -183,8 +181,6 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                 router.push('/signup/success-verification');
             } catch {
                 setCodeError('Something went wrong. Please try again.');
-            } finally {
-                setIsSubmitting(false);
             }
         };
 
@@ -310,15 +306,19 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
                     )}
                 </div>
 
-                <Button className="mt-5 mb-5" disabled={disabled || isSubmitting} fullWidth>
-                    {isSubmitting ? 'Verifying...' : 'Verify'}
+                <Button
+                    className="mt-5 mb-5"
+                    disabled={disabled || confirmSignupCodeMutation.isPending}
+                    fullWidth
+                >
+                    {confirmSignupCodeMutation.isPending ? 'Verifying...' : 'Verify'}
                 </Button>
 
                 <Link href="/signup/resend-email" className="underline">
                     Resend code
                 </Link>
 
-                {isSubmitting && <Loader />}
+                {confirmSignupCodeMutation.isPending && <Loader />}
             </form>
         );
     },
