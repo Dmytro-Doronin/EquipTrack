@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { codeResendAction } from '@/actions/ResendCodeAction';
+import { resendSignupCode } from '@/api/auth/authApi';
 import { VerifyEmailFormValues } from '@/components/forms/verifyEmailForm/verifyEmailForm.types';
 import { verifyEmailSchema } from '@/components/forms/verifyEmailForm/verifyEmailForm.validation';
 import { Loader } from '@/components/loader/Loader';
@@ -40,12 +40,12 @@ export const ResendEmailForm = () => {
 
         const formData = new FormData();
 
-        formData.append('email', data.email);
+        formData.append('email', savedEmail ?? data.email);
 
         setIsLoading(true);
 
         try {
-            const result = await codeResendAction(savedEmail ?? '');
+            const result = await resendSignupCode(formData);
 
             if (!result.success) {
                 const resendError = result.errors?.resend?.[0];

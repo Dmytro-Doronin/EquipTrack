@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
-import { resetPasswordAction } from '@/actions/ResetPasswordAction';
+import { resetPasswordConfirm } from '@/api/auth/authApi';
 import { ResetPasswordFormValues } from '@/components/forms/resetPasswordForm/resetPasswordForm.types';
 import { resetPasswordSchema } from '@/components/forms/resetPasswordForm/resetPasswordForm.validation';
 import { Loader } from '@/components/loader/Loader';
@@ -49,7 +49,7 @@ export const ResetPasswordForm = () => {
         setIsLoading(true);
 
         try {
-            const result = await resetPasswordAction({
+            const result = await resetPasswordConfirm({
                 token,
                 password: data.password,
                 confirmPassword: data.confirmPassword,

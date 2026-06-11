@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
-import { signUpAction } from '@/actions/SignUpAction';
+import { signupStart } from '@/api/auth/authApi';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
 import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
@@ -71,7 +71,7 @@ export const SignupForm = () => {
         setIsLoading(true);
 
         try {
-            const result = await signUpAction(formData);
+            const result = await signupStart(formData);
 
             if (!result.success) {
                 let hasFieldError = false;

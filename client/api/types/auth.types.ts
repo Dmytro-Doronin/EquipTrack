@@ -9,6 +9,7 @@ export type User = {
 export type AuthApiResponse<TData = unknown> = {
     success: boolean;
     data?: TData;
+    errors?: Record<string, string[]>;
     message?: string;
 };
 
@@ -43,6 +44,7 @@ export type ResetPasswordType = {
 
 export type AuthMessageResponse = {
     success: boolean;
+    errors?: Record<string, string[]>;
     message: string;
 };
 

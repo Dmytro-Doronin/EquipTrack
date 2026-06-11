@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { forgotPasswordAction } from '@/actions/ForgotPasswordAction';
+import { forgotPasswordStart } from '@/api/auth/authApi';
 import { ForgotPasswordFormValues } from '@/components/forms/forgotPasswordForm/forgotPasswordForm.types';
 import { forgotPasswordSchema } from '@/components/forms/forgotPasswordForm/forgotPasswordForm.validation';
 import { Loader } from '@/components/loader/Loader';
@@ -35,7 +35,7 @@ export const ForgotPasswordForm = () => {
 
         formData.append('email', data.email);
         try {
-            const result = await forgotPasswordAction(formData);
+            const result = await forgotPasswordStart(formData);
 
             if (!result.success) {
                 let hasFieldError = false;

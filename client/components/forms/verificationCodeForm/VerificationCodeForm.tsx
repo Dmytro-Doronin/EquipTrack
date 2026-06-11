@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-import { codeAction } from '@/actions/CodeAction';
+import { confirmSignupCode } from '@/api/auth/authApi';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
@@ -162,7 +162,11 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
             setIsSubmitting(true);
 
             try {
-                const result = await codeAction(email, code);
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('code', code);
+
+                const result = await confirmSignupCode(formData);
 
                 if (!result.success) {
                     const codeMessage = result.errors?.code?.[0];
