@@ -2,23 +2,21 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { forgotPasswordStart } from '@/api/auth/authApi';
 import { ForgotPasswordFormValues } from '@/components/forms/forgotPasswordForm/forgotPasswordForm.types';
 import { forgotPasswordSchema } from '@/components/forms/forgotPasswordForm/forgotPasswordForm.validation';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useForgotPasswordStartMutation } from '@/hooks/mutations/useForgotPasswordStartMutation';
 import { useForgotPasswordFlowStore } from '@/stores/forgotPasswordFlow.store';
 
 import Envelope from '../../icons/Envelope';
 
 export const ForgotPasswordForm = () => {
-    const [serverError, setServerError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const forgotPasswordMutation = useForgotPasswordStartMutation();
     const setEmail = useForgotPasswordFlowStore((state) => state.setEmail);
 
     const { control, handleSubmit, reset } = useForm<ForgotPasswordFormValues>({
@@ -29,41 +27,19 @@ export const ForgotPasswordForm = () => {
     });
 
     const onSubmitForm = async (data: ForgotPasswordFormValues) => {
-        setServerError(null);
-        setIsLoading(true);
         const formData = new FormData();
 
         formData.append('email', data.email);
+
         try {
-            const result = await forgotPasswordStart(formData);
-
-            if (!result.success) {
-                let hasFieldError = false;
-
-                if (result.errors) {
-                    Object.entries(result.errors).forEach(([, messages]) => {
-                        if (!messages?.[0]) {
-                            return;
-                        }
-
-                        hasFieldError = true;
-                        setServerError(messages[0]);
-                    });
-                }
-
-                if (!hasFieldError) {
-                    setServerError(result.message ?? 'Something went wrong');
-                }
-
-                return;
-            }
+            await forgotPasswordMutation.mutateAsync(formData);
 
             setEmail(data.email);
 
             reset();
             router.push('/forgot-password/success-send-link');
-        } finally {
-            setIsLoading(false);
+        } catch {
+            // Error display is handled by the mutation state.
         }
     };
 
@@ -85,13 +61,15 @@ export const ForgotPasswordForm = () => {
                 />
             </div>
 
-            {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+            {forgotPasswordMutation.error && (
+                <p className="text-red-500 text-sm mb-4">{forgotPasswordMutation.error.message}</p>
+            )}
 
-            <Button className="mb-5" fullWidth disabled={isLoading}>
-                {isLoading ? 'Sending link...' : 'Send Link'}
+            <Button className="mb-5" fullWidth disabled={forgotPasswordMutation.isPending}>
+                {forgotPasswordMutation.isPending ? 'Sending link...' : 'Send Link'}
             </Button>
 
-            {isLoading && <Loader />}
+            {forgotPasswordMutation.isPending && <Loader />}
         </form>
     );
 };
