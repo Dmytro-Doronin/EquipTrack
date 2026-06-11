@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 
-import { OrganizationJoinRequest } from '@/api/types/organization.types';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { useApproveJoinRequestMutation } from '@/hooks/mutations/useApproveJoinRequestMutation';
 import { useRejectJoinRequestMutation } from '@/hooks/mutations/useRejectJoinRequestMutation';
 import { usePendingJoinRequestsQuery } from '@/hooks/query/usePendingJoinRequestsQuery';
+import { OrganizationJoinRequest } from '@/shared/api/types/organization.types';
 import { getErrorMessage } from '@/utils/ErrorUtil';
 import { formatDisplayDate } from '@/utils/formatDate';
 

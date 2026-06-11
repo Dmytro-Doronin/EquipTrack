@@ -2,13 +2,13 @@
 
 import { type FormEvent, useState } from 'react';
 
-import { OrganizationSearchResult } from '@/api/types/organization.types';
 import Search from '@/components/icons/Search';
 import { OrganizationList } from '@/components/organizationsList/OrganizationList';
 import { Button } from '@/components/ui/button/Button';
 import { TextField } from '@/components/ui/textField/TextField';
 import { useCreateJoinRequestMutation } from '@/hooks/mutations/useCreateJoinRequestMutation';
 import { useOrganizationsSearchQuery } from '@/hooks/query/useOrganizationsSearchQuery';
+import { OrganizationSearchResult } from '@/shared/api/types/organization.types';
 import { getErrorMessage } from '@/utils/ErrorUtil';
 
 type JoinClientProps = {
