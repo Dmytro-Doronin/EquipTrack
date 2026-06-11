@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
-import { signupStart } from '@/api/auth/authApi';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { AvatarChanger } from '@/components/avatarChanger/AvatarChanger';
 import { SignUpFormFormValues } from '@/components/forms/signupForm/signUpForm.types';
@@ -14,6 +13,7 @@ import { avatarSchema, signUpSchema } from '@/components/forms/signupForm/signUp
 import { PasswordStrengthIndicator } from '@/components/passwordStrengthIndicator/PasswordStrengthIndicator';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useSignupStartMutation } from '@/hooks/mutations/useSignupStartMutation';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 import Envelope from '../../icons/Envelope';
@@ -24,7 +24,7 @@ import User from '../../icons/User';
 export const SignupForm = () => {
     const [avatar, setAvatar] = useState<File | null>(null);
     const [serverError, setServerError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const signupStartMutation = useSignupStartMutation();
     const router = useRouter();
 
     const setEmail = useSignupFlowStore((state) => state.setEmail);
@@ -68,48 +68,42 @@ export const SignupForm = () => {
             formData.append('avatar', avatar);
         }
 
-        setIsLoading(true);
+        const result = await signupStartMutation.mutateAsync(formData);
 
-        try {
-            const result = await signupStart(formData);
+        if (!result.success) {
+            let hasFieldError = false;
 
-            if (!result.success) {
-                let hasFieldError = false;
+            if (result.errors) {
+                Object.entries(result.errors).forEach(([field, messages]) => {
+                    if (!messages?.[0]) {
+                        return;
+                    }
 
-                if (result.errors) {
-                    Object.entries(result.errors).forEach(([field, messages]) => {
-                        if (!messages?.[0]) {
-                            return;
-                        }
+                    hasFieldError = true;
 
-                        hasFieldError = true;
-
-                        if (field === 'avatar') {
-                            setServerError(messages[0]);
-                            return;
-                        }
-
-                        hasFieldError = true;
+                    if (field === 'avatar') {
                         setServerError(messages[0]);
-                    });
-                }
+                        return;
+                    }
 
-                if (!hasFieldError) {
-                    setServerError(result.message ?? 'Something went wrong');
-                }
-
-                return;
+                    hasFieldError = true;
+                    setServerError(messages[0]);
+                });
             }
 
-            setEmail(data.email);
-            setMaxAllowedStep('code');
+            if (!hasFieldError) {
+                setServerError(result.message ?? 'Something went wrong');
+            }
 
-            reset();
-            setAvatar(null);
-            router.push('/signup/code');
-        } finally {
-            setIsLoading(false);
+            return;
         }
+
+        setEmail(data.email);
+        setMaxAllowedStep('code');
+
+        reset();
+        setAvatar(null);
+        router.push('/signup/code');
     };
 
     return (
@@ -162,8 +156,8 @@ export const SignupForm = () => {
 
             {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
 
-            <Button className="mb-5" fullWidth disabled={isLoading}>
-                {isLoading ? 'Signing up...' : 'Sign Up'}
+            <Button className="mb-5" fullWidth disabled={signupStartMutation.isPending}>
+                {signupStartMutation.isPending ? 'Signing up...' : 'Sign Up'}
             </Button>
 
             <div className="mb-5 flex items-center gap-3 text-xs text-sub-text">
