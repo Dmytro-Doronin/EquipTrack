@@ -1,5 +1,8 @@
-import { apiClient } from '@/api/apiClient';
-import { CreateJoinRequestResponse, CreateJoinRequestResult } from '@/api/types/organization.types';
+import { apiClient } from '@/shared/api/apiClient';
+import {
+    CreateJoinRequestResponse,
+    CreateJoinRequestResult,
+} from '@/shared/api/types/organization.types';
 
 export const createJoinRequest = async (
     organizationId: number,

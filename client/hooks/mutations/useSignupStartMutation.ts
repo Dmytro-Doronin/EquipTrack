@@ -3,8 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { signupStart } from '@/api/auth/authApi';
 import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
+import { signupStart } from '@/shared/api/auth/authApi';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 type SignupStartMutationVariables = {

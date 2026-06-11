@@ -1,9 +1,9 @@
-import { apiClient } from '@/api/apiClient';
+import { apiClient } from '@/shared/api/apiClient';
 import {
     ModerateJoinRequestPayload,
     RejectJoinRequestResponse,
     RejectJoinRequestResult,
-} from '@/api/types/organization.types';
+} from '@/shared/api/types/organization.types';
 
 export const rejectJoinRequest = async ({
     organizationId,

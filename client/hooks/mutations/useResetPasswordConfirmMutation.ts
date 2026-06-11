@@ -3,8 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { resetPasswordConfirm } from '@/api/auth/authApi';
 import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
+import { resetPasswordConfirm } from '@/shared/api/auth/authApi';
 
 export function useResetPasswordConfirmMutation() {
     const router = useRouter();

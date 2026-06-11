@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { searchOrganizations } from '@/api/organizations/searchOrganizations';
+import { searchOrganizations } from '@/shared/api/organizations/searchOrganizations';
 import { useNotificationStore } from '@/stores/notification.store';
 import { getErrorMessage } from '@/utils/ErrorUtil';
 

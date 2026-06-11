@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createJoinRequest } from '@/api/organizations/createJoinRequest';
+import { createJoinRequest } from '@/shared/api/organizations/createJoinRequest';
 
 export function useCreateJoinRequestMutation() {
     const queryClient = useQueryClient();

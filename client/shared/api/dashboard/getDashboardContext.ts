@@ -1,6 +1,6 @@
 import type { DashboardContext } from '@/types/dashboard/types';
 
-import { apiClient } from '@/api/apiClient';
+import { apiClient } from '@/shared/api/apiClient';
 
 type DashboardContextPayload = Omit<
     DashboardContext,

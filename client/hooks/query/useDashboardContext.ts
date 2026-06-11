@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { getDashboardContext } from '@/api/dashboard/getDashboardContext';
+import { getDashboardContext } from '@/shared/api/dashboard/getDashboardContext';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import { getErrorMessage } from '@/utils/ErrorUtil';

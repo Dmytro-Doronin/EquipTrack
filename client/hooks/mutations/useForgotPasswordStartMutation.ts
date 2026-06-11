@@ -3,8 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { forgotPasswordStart } from '@/api/auth/authApi';
 import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
+import { forgotPasswordStart } from '@/shared/api/auth/authApi';
 import { useForgotPasswordFlowStore } from '@/stores/forgotPasswordFlow.store';
 
 type ForgotPasswordStartMutationVariables = {

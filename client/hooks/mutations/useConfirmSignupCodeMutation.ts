@@ -3,8 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { confirmSignupCode } from '@/api/auth/authApi';
 import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
+import { confirmSignupCode } from '@/shared/api/auth/authApi';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 export function useConfirmSignupCodeMutation() {

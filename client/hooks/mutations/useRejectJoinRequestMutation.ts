@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { rejectJoinRequest } from '@/api/organizations/rejectJoinRequest';
-import { ModerateJoinRequestPayload } from '@/api/types/organization.types';
 import { pendingJoinRequestsQueryKey } from '@/hooks/query/usePendingJoinRequestsQuery';
+import { rejectJoinRequest } from '@/shared/api/organizations/rejectJoinRequest';
+import { ModerateJoinRequestPayload } from '@/shared/api/types/organization.types';
 
 export function useRejectJoinRequestMutation() {
     const queryClient = useQueryClient();

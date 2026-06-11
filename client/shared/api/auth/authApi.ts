@@ -1,15 +1,14 @@
 import { isAxiosError, type AxiosRequestConfig } from 'axios';
 
-import type {
+import { apiClient } from '@/shared/api/apiClient';
+import {
     AuthApiErrorResponse,
     AuthApiResponse,
     AuthMessageResponse,
     AuthSessionResponse,
     ResetPasswordType,
     User,
-} from '@/api/types/auth.types';
-
-import { apiClient } from '@/api/apiClient';
+} from '@/shared/api/types/auth.types';
 
 type AuthRequestConfig = AxiosRequestConfig & {
     skipAuthRefresh?: boolean;

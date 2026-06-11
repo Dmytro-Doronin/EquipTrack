@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createOrganization } from '@/api/organizations/createOrganization';
+import { createOrganization } from '@/shared/api/organizations/createOrganization';
 
 export function useCreateOrganizationMutation() {
     const queryClient = useQueryClient();

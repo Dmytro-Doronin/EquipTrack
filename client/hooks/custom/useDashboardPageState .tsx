@@ -1,10 +1,9 @@
 'use client';
 
-import type { DashboardContext, DashboardState } from '@/types/dashboard/types';
-
 import { useDashboardContext } from '@/hooks/query/useDashboardContext';
 import { resolveDashboardState } from '@/models/resolveDashboardState';
 import { useAuthStore } from '@/stores/auth.store';
+import { DashboardContext, DashboardState } from '@/types/dashboard/types';
 
 type UseDashboardPageState =
     | {

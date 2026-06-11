@@ -3,9 +3,9 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { PropsWithChildren, useEffect, useRef } from 'react';
 
-import { refreshSession } from '@/api/apiClient';
 import { Loader } from '@/components/loader/Loader';
 import { protectedRoutes } from '@/lib/constants/routes';
+import { refreshSession } from '@/shared/api/apiClient';
 import { useAuthStore } from '@/stores/auth.store';
 import { hasAuthHint } from '@/utils/authHint';
 

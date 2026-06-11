@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { logoutApi } from '@/api/auth/auth';
+import { logoutApi } from '@/shared/api/auth/auth';
 import { useAuthStore } from '@/stores/auth.store';
 import { clearAuthHint } from '@/utils/authHint';
 

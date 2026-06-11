@@ -3,8 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
-import { signin } from '@/api/auth/authApi';
 import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
+import { signin } from '@/shared/api/auth/authApi';
 import { useAuthStore } from '@/stores/auth.store';
 import { setAuthHint } from '@/utils/authHint';
 

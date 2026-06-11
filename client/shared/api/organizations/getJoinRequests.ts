@@ -1,5 +1,8 @@
-import { apiClient } from '@/api/apiClient';
-import { GetJoinRequestsResponse, OrganizationJoinRequest } from '@/api/types/organization.types';
+import { apiClient } from '@/shared/api/apiClient';
+import {
+    GetJoinRequestsResponse,
+    OrganizationJoinRequest,
+} from '@/shared/api/types/organization.types';
 
 type GetJoinRequestsParams = {
     organizationId: number;
