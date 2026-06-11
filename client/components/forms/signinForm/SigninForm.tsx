@@ -2,29 +2,23 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { signin } from '@/api/auth/authApi';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
-import { useAuthStore } from '@/stores/auth.store';
-import { setAuthHint } from '@/utils/authHint';
+import { useSigninMutation } from '@/hooks/mutations/useSigninMutation';
 
 import Envelope from '../../icons/Envelope';
 import Lock from '../../icons/Lock';
 
 export const SignInForm = () => {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
-    const setAccessToken = useAuthStore((state) => state.setAccessToken);
-    const setUser = useAuthStore((state) => state.setUser);
+    const signinMutation = useSigninMutation();
 
     const { control, handleSubmit, reset } = useForm<SignInFormValues>({
         resolver: zodResolver(signInSchema),
@@ -42,43 +36,29 @@ export const SignInForm = () => {
         formData.append('email', data.email);
         formData.append('password', data.password);
 
-        setIsLoading(true);
+        const result = await signinMutation.mutateAsync(formData);
 
-        try {
-            const result = await signin(formData);
+        if (!result.success) {
+            let hasFieldError = false;
 
-            if (!result.success) {
-                let hasFieldError = false;
-
-                if (result.errors) {
-                    Object.entries(result.errors).forEach(([, messages]) => {
-                        if (!messages?.[0]) {
-                            return;
-                        }
-                        hasFieldError = true;
-                        setServerError(messages[0]);
-                    });
-                }
-
-                if (!hasFieldError) {
-                    setServerError(result.message ?? 'Something went wrong');
-                }
-
-                return;
+            if (result.errors) {
+                Object.entries(result.errors).forEach(([, messages]) => {
+                    if (!messages?.[0]) {
+                        return;
+                    }
+                    hasFieldError = true;
+                    setServerError(messages[0]);
+                });
             }
 
-            if (result.data?.user && result.data?.accessToken) {
-                setUser(result.data.user);
-                setAccessToken(result.data.accessToken);
-
-                setAuthHint();
+            if (!hasFieldError) {
+                setServerError(result.message ?? 'Something went wrong');
             }
 
-            reset();
-            router.push('/dashboard');
-        } finally {
-            setIsLoading(false);
+            return;
         }
+
+        reset();
     };
 
     return (
@@ -116,8 +96,8 @@ export const SignInForm = () => {
 
             {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
 
-            <Button className="mb-5" fullWidth disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
+            <Button className="mb-5" fullWidth disabled={signinMutation.isPending}>
+                {signinMutation.isPending ? 'Signing in...' : 'Sign In'}
             </Button>
 
             <div className="mb-5 flex items-center gap-3 text-xs text-sub-text">
@@ -128,7 +108,7 @@ export const SignInForm = () => {
 
             <GoogleAuthButton className="mb-5" />
 
-            {isLoading && <Loader />}
+            {signinMutation.isPending && <Loader />}
         </form>
     );
 };
