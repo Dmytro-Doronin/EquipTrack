@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { User } from '@/api/types/auth.types';
+import type { User } from '@/shared/api/types/auth.types';
 
 type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated';
 

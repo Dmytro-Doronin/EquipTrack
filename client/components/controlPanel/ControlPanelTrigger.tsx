@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { User } from '@/api/types/auth.types';
+import type { User } from '@/shared/api/types/auth.types';
 
 import { DropdownMenu } from '@/components/controlPanel/DropdownMenu';
 import { Button } from '@/components/ui/button/Button';
