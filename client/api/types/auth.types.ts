@@ -6,6 +6,19 @@ export type User = {
     role: string;
 };
 
+export type AuthApiResponse<TData = unknown> = {
+    success: boolean;
+    data?: TData;
+    message?: string;
+};
+
+export type AuthApiErrorResponse = {
+    detail?: {
+        errors?: Record<string, string[]>;
+        message?: string;
+    };
+};
+
 export type SignUpType = {
     login: string;
     password: string;
@@ -43,7 +56,7 @@ export type GetMeResponse = {
         role: string;
     };
 };
-export type RefreshResponse = {
+export type AuthSessionResponse = {
     success: boolean;
     message: string;
     data: {
@@ -51,3 +64,5 @@ export type RefreshResponse = {
         accessToken: string;
     };
 };
+
+export type RefreshResponse = AuthSessionResponse;
