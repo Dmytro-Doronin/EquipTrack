@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { resendSignupCode } from '@/api/auth/authApi';
 import { VerifyEmailFormValues } from '@/components/forms/verifyEmailForm/verifyEmailForm.types';
 import { verifyEmailSchema } from '@/components/forms/verifyEmailForm/verifyEmailForm.validation';
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
+import { useResendSignupCodeMutation } from '@/hooks/mutations/useResendSignupCodeMutation';
 import { useSignupStepGuard } from '@/hooks/useSignupStepGuard';
 import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
@@ -22,7 +22,7 @@ export const ResendEmailForm = () => {
     const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
     const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
     const [serverError, setServerError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const resendSignupCodeMutation = useResendSignupCodeMutation();
     const [codeError, setCodeError] = useState<string | null>(null);
     const finalErrorMessage = serverError ?? codeError;
 
@@ -42,10 +42,8 @@ export const ResendEmailForm = () => {
 
         formData.append('email', savedEmail ?? data.email);
 
-        setIsLoading(true);
-
         try {
-            const result = await resendSignupCode(formData);
+            const result = await resendSignupCodeMutation.mutateAsync(formData);
 
             if (!result.success) {
                 const resendError = result.errors?.resend?.[0];
@@ -59,8 +57,6 @@ export const ResendEmailForm = () => {
             router.push('/signup/code');
         } catch {
             setCodeError('Something went wrong. Please try again.');
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -86,10 +82,10 @@ export const ResendEmailForm = () => {
                 <span className="mt-1 text-sm text-[12px] text-danger">{finalErrorMessage}</span>
             )}
 
-            <Button className="mb-5" disabled={isLoading} fullWidth>
-                {isLoading ? 'Continue...' : 'Continue'}
+            <Button className="mb-5" disabled={resendSignupCodeMutation.isPending} fullWidth>
+                {resendSignupCodeMutation.isPending ? 'Continue...' : 'Continue'}
             </Button>
-            {isLoading && <Loader />}
+            {resendSignupCodeMutation.isPending && <Loader />}
         </form>
     );
 };
