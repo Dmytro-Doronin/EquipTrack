@@ -58,13 +58,11 @@ export type GetMeResponse = {
         role: string;
     };
 };
-export type AuthSessionResponse = {
-    success: boolean;
-    message: string;
-    data: {
-        user: User;
-        accessToken: string;
-    };
+export type AuthSessionData = {
+    user: User;
+    accessToken: string;
 };
+
+export type AuthSessionResponse = AuthApiResponse<AuthSessionData>;
 
 export type RefreshResponse = AuthSessionResponse;

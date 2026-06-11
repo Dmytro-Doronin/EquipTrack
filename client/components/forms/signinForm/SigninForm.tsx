@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { signInAction } from '@/actions/SignInAction';
+import { signin } from '@/api/auth/authApi';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { SignInFormValues } from '@/components/forms/signinForm/signInForm.types';
 import { signInSchema } from '@/components/forms/signinForm/signInForm.validation';
@@ -45,7 +45,7 @@ export const SignInForm = () => {
         setIsLoading(true);
 
         try {
-            const result = await signInAction(formData);
+            const result = await signin(formData);
 
             if (!result.success) {
                 let hasFieldError = false;

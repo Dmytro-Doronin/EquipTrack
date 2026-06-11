@@ -44,9 +44,13 @@ export const signupStart = async (formData: FormData): Promise<AuthApiResponse> 
 };
 
 export const signin = async (formData: FormData): Promise<AuthSessionResponse> => {
-    const response = await apiClient.post<AuthSessionResponse>('/auth/signin', formData);
+    try {
+        const response = await apiClient.post<AuthSessionResponse>('/auth/signin', formData);
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        return toAuthApiResponse(error, 'Sign in failed');
+    }
 };
 
 export const confirmSignupCode = async (formData: FormData): Promise<AuthApiResponse<User>> => {
