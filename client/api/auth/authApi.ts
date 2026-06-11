@@ -108,11 +108,15 @@ export const resetPasswordConfirm = async (
 };
 
 export const googleAuth = async (idToken: string): Promise<AuthSessionResponse> => {
-    const response = await apiClient.post<AuthSessionResponse>('/auth/google', {
-        id_token: idToken,
-    });
+    try {
+        const response = await apiClient.post<AuthSessionResponse>('/auth/google', {
+            id_token: idToken,
+        });
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        return toAuthApiResponse(error, 'Google sign-in failed');
+    }
 };
 
 export const refreshToken = async (): Promise<AuthSessionResponse> => {

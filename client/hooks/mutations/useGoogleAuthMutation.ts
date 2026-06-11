@@ -3,7 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { googleAuthAction } from '@/actions/GoogleAuthAction';
+import { googleAuth } from '@/api/auth/authApi';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import { setAuthHint } from '@/utils/authHint';
@@ -24,7 +24,7 @@ export function useGoogleAuthMutation() {
 
     return useMutation({
         mutationFn: async (idToken: string) => {
-            const result = await googleAuthAction(idToken);
+            const result = await googleAuth(idToken);
 
             if (!result.success) {
                 throw new Error(
