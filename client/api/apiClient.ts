@@ -1,8 +1,7 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
-import type { User } from '@/api/types/auth.types';
+import type { AuthSessionResponse, User } from '@/api/types/auth.types';
 
-import { refreshSessionAction } from '@/actions/refreshSessionAction';
 import { useAuthStore } from '@/stores/auth.store';
 import { clearAuthHint } from '@/utils/authHint';
 
@@ -29,10 +28,22 @@ export const apiClient: AxiosInstance = axios.create({
     },
 });
 
+const refreshClient: AxiosInstance = axios.create({
+    baseURL: API_URL,
+    withCredentials: true,
+    timeout: 10000,
+    headers: {
+        Accept: 'application/json',
+    },
+});
+
 export async function refreshSession(): Promise<AuthSession | null> {
     if (!refreshPromise) {
-        refreshPromise = refreshSessionAction()
-            .then((result) => {
+        refreshPromise = refreshClient
+            .post<AuthSessionResponse>('/auth/refresh-token')
+            .then((response) => {
+                const result = response.data;
+
                 if (!result.success || !result.data) {
                     useAuthStore.getState().clearAuth();
                     clearAuthHint();
