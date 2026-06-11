@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
@@ -18,9 +18,8 @@ import KeyPass from '../../icons/KeyPass';
 import Lock from '../../icons/Lock';
 
 export const ResetPasswordForm = () => {
-    const [serverError, setServerError] = useState<string | null>(null);
+    const [tokenError, setTokenError] = useState<string | null>(null);
     const resetPasswordMutation = useResetPasswordConfirmMutation();
-    const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token') ?? '';
 
@@ -38,43 +37,26 @@ export const ResetPasswordForm = () => {
         defaultValue: '',
     });
 
-    const onSubmitForm = async (data: ResetPasswordFormValues) => {
-        setServerError(null);
+    const onSubmitForm = (data: ResetPasswordFormValues) => {
+        setTokenError(null);
 
         if (!token) {
-            setServerError('Invalid or expired password recovery link');
+            setTokenError('Invalid or expired password recovery link');
             return;
         }
 
-        const result = await resetPasswordMutation.mutateAsync({
-            token,
-            password: data.password,
-            confirmPassword: data.confirmPassword,
-        });
-
-        if (!result.success) {
-            let hasFieldError = false;
-
-            if (result.errors) {
-                Object.entries(result.errors).forEach(([, messages]) => {
-                    if (!messages?.[0]) {
-                        return;
-                    }
-
-                    hasFieldError = true;
-                    setServerError(messages[0]);
-                });
-            }
-
-            if (!hasFieldError) {
-                setServerError(result.message ?? 'Something went wrong');
-            }
-
-            return;
-        }
-
-        reset();
-        router.push('/reset-password/success');
+        resetPasswordMutation.mutate(
+            {
+                token,
+                password: data.password,
+                confirmPassword: data.confirmPassword,
+            },
+            {
+                onSuccess: () => {
+                    reset();
+                },
+            },
+        );
     };
 
     return (
@@ -110,7 +92,11 @@ export const ResetPasswordForm = () => {
 
             {password.length > 0 && <PasswordStrengthIndicator password={password} />}
 
-            {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+            {(tokenError || resetPasswordMutation.error) && (
+                <p className="text-red-500 text-sm mb-4">
+                    {tokenError ?? resetPasswordMutation.error?.message}
+                </p>
+            )}
 
             <Button className="mb-5" fullWidth disabled={resetPasswordMutation.isPending || !token}>
                 {resetPasswordMutation.isPending ? 'Changing password...' : 'Change Password'}

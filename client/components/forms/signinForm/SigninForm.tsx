@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
@@ -17,7 +16,6 @@ import Envelope from '../../icons/Envelope';
 import Lock from '../../icons/Lock';
 
 export const SignInForm = () => {
-    const [serverError, setServerError] = useState<string | null>(null);
     const signinMutation = useSigninMutation();
 
     const { control, handleSubmit, reset } = useForm<SignInFormValues>({
@@ -28,37 +26,17 @@ export const SignInForm = () => {
         },
     });
 
-    const onSubmitForm = async (data: SignInFormValues) => {
-        setServerError(null);
-
+    const onSubmitForm = (data: SignInFormValues) => {
         const formData = new FormData();
 
         formData.append('email', data.email);
         formData.append('password', data.password);
 
-        const result = await signinMutation.mutateAsync(formData);
-
-        if (!result.success) {
-            let hasFieldError = false;
-
-            if (result.errors) {
-                Object.entries(result.errors).forEach(([, messages]) => {
-                    if (!messages?.[0]) {
-                        return;
-                    }
-                    hasFieldError = true;
-                    setServerError(messages[0]);
-                });
-            }
-
-            if (!hasFieldError) {
-                setServerError(result.message ?? 'Something went wrong');
-            }
-
-            return;
-        }
-
-        reset();
+        signinMutation.mutate(formData, {
+            onSuccess: () => {
+                reset();
+            },
+        });
     };
 
     return (
@@ -94,7 +72,9 @@ export const SignInForm = () => {
                 Forgot password?
             </Button>
 
-            {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+            {signinMutation.error && (
+                <p className="text-red-500 text-sm mb-4">{signinMutation.error.message}</p>
+            )}
 
             <Button className="mb-5" fullWidth disabled={signinMutation.isPending}>
                 {signinMutation.isPending ? 'Signing in...' : 'Sign In'}

@@ -1,8 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { VerifyEmailFormValues } from '@/components/forms/verifyEmailForm/verifyEmailForm.types';
@@ -17,14 +15,9 @@ import { useSignupFlowStore } from '@/stores/signupFlow.store';
 import Envelope from '../../icons/Envelope';
 
 export const ResendEmailForm = () => {
-    const router = useRouter();
     const savedEmail = useSignupFlowStore((state) => state.email);
     const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
-    const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
-    const [serverError, setServerError] = useState<string | null>(null);
     const resendSignupCodeMutation = useResendSignupCodeMutation();
-    const [codeError, setCodeError] = useState<string | null>(null);
-    const finalErrorMessage = serverError ?? codeError;
 
     useSignupStepGuard('code', maxAllowedStep);
 
@@ -35,29 +28,12 @@ export const ResendEmailForm = () => {
         },
     });
 
-    const onSubmitForm = async (data: VerifyEmailFormValues) => {
-        setServerError(null);
-
+    const onSubmitForm = (data: VerifyEmailFormValues) => {
         const formData = new FormData();
 
         formData.append('email', savedEmail ?? data.email);
 
-        try {
-            const result = await resendSignupCodeMutation.mutateAsync(formData);
-
-            if (!result.success) {
-                const resendError = result.errors?.resend?.[0];
-
-                setServerError(resendError ?? result.message ?? 'Resend code failed');
-
-                return;
-            }
-
-            setMaxAllowedStep('code');
-            router.push('/signup/code');
-        } catch {
-            setCodeError('Something went wrong. Please try again.');
-        }
+        resendSignupCodeMutation.mutate(formData);
     };
 
     return (
@@ -78,8 +54,10 @@ export const ResendEmailForm = () => {
                 />
             </div>
 
-            {finalErrorMessage && (
-                <span className="mt-1 text-sm text-[12px] text-danger">{finalErrorMessage}</span>
+            {resendSignupCodeMutation.error && (
+                <span className="mt-1 text-sm text-[12px] text-danger">
+                    {resendSignupCodeMutation.error.message}
+                </span>
             )}
 
             <Button className="mb-5" disabled={resendSignupCodeMutation.isPending} fullWidth>

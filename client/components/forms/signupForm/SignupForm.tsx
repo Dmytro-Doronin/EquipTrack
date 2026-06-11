@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -14,7 +13,6 @@ import { PasswordStrengthIndicator } from '@/components/passwordStrengthIndicato
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useSignupStartMutation } from '@/hooks/mutations/useSignupStartMutation';
-import { useSignupFlowStore } from '@/stores/signupFlow.store';
 
 import Envelope from '../../icons/Envelope';
 import KeyPass from '../../icons/KeyPass';
@@ -23,12 +21,8 @@ import User from '../../icons/User';
 
 export const SignupForm = () => {
     const [avatar, setAvatar] = useState<File | null>(null);
-    const [serverError, setServerError] = useState<string | null>(null);
+    const [avatarError, setAvatarError] = useState<string | null>(null);
     const signupStartMutation = useSignupStartMutation();
-    const router = useRouter();
-
-    const setEmail = useSignupFlowStore((state) => state.setEmail);
-    const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
 
     const { control, handleSubmit, reset } = useForm<SignUpFormFormValues>({
         resolver: zodResolver(signUpSchema),
@@ -46,14 +40,14 @@ export const SignupForm = () => {
         defaultValue: '',
     });
 
-    const onSubmitForm = async (data: SignUpFormFormValues) => {
-        setServerError(null);
+    const onSubmitForm = (data: SignUpFormFormValues) => {
+        setAvatarError(null);
 
         const avatarValidationResult = avatarSchema.safeParse(avatar);
 
         if (!avatarValidationResult.success) {
             const avatarErrors = z.flattenError(avatarValidationResult.error).formErrors;
-            setServerError(avatarErrors[0] ?? 'Invalid avatar');
+            setAvatarError(avatarErrors[0] ?? 'Invalid avatar');
             return;
         }
 
@@ -68,42 +62,15 @@ export const SignupForm = () => {
             formData.append('avatar', avatar);
         }
 
-        const result = await signupStartMutation.mutateAsync(formData);
-
-        if (!result.success) {
-            let hasFieldError = false;
-
-            if (result.errors) {
-                Object.entries(result.errors).forEach(([field, messages]) => {
-                    if (!messages?.[0]) {
-                        return;
-                    }
-
-                    hasFieldError = true;
-
-                    if (field === 'avatar') {
-                        setServerError(messages[0]);
-                        return;
-                    }
-
-                    hasFieldError = true;
-                    setServerError(messages[0]);
-                });
-            }
-
-            if (!hasFieldError) {
-                setServerError(result.message ?? 'Something went wrong');
-            }
-
-            return;
-        }
-
-        setEmail(data.email);
-        setMaxAllowedStep('code');
-
-        reset();
-        setAvatar(null);
-        router.push('/signup/code');
+        signupStartMutation.mutate(
+            { email: data.email, formData },
+            {
+                onSuccess: () => {
+                    reset();
+                    setAvatar(null);
+                },
+            },
+        );
     };
 
     return (
@@ -154,7 +121,11 @@ export const SignupForm = () => {
 
             {password.length > 0 && <PasswordStrengthIndicator password={password} />}
 
-            {serverError && <p className="text-red-500 text-sm mb-4">{serverError}</p>}
+            {(avatarError || signupStartMutation.error) && (
+                <p className="text-red-500 text-sm mb-4">
+                    {avatarError ?? signupStartMutation.error?.message}
+                </p>
+            )}
 
             <Button className="mb-5" fullWidth disabled={signupStartMutation.isPending}>
                 {signupStartMutation.isPending ? 'Signing up...' : 'Sign Up'}

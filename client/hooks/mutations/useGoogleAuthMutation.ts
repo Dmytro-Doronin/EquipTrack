@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { googleAuth } from '@/api/auth/authApi';
+import { getAuthErrorMessage } from '@/hooks/mutations/getAuthErrorMessage';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotificationStore } from '@/stores/notification.store';
 import { setAuthHint } from '@/utils/authHint';
@@ -28,9 +29,7 @@ export function useGoogleAuthMutation() {
             const result = await googleAuth(idToken);
 
             if (!result.success) {
-                throw new Error(
-                    result.errors?.google?.[0] ?? result.message ?? 'Google sign-in failed',
-                );
+                throw new Error(getAuthErrorMessage(result, 'Google sign-in failed'));
             }
 
             if (!result.data) {

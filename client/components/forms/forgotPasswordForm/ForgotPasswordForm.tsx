@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 
 import { ForgotPasswordFormValues } from '@/components/forms/forgotPasswordForm/forgotPasswordForm.types';
@@ -10,14 +9,11 @@ import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useForgotPasswordStartMutation } from '@/hooks/mutations/useForgotPasswordStartMutation';
-import { useForgotPasswordFlowStore } from '@/stores/forgotPasswordFlow.store';
 
 import Envelope from '../../icons/Envelope';
 
 export const ForgotPasswordForm = () => {
-    const router = useRouter();
     const forgotPasswordMutation = useForgotPasswordStartMutation();
-    const setEmail = useForgotPasswordFlowStore((state) => state.setEmail);
 
     const { control, handleSubmit, reset } = useForm<ForgotPasswordFormValues>({
         resolver: zodResolver(forgotPasswordSchema),
@@ -26,21 +22,19 @@ export const ForgotPasswordForm = () => {
         },
     });
 
-    const onSubmitForm = async (data: ForgotPasswordFormValues) => {
+    const onSubmitForm = (data: ForgotPasswordFormValues) => {
         const formData = new FormData();
 
         formData.append('email', data.email);
 
-        try {
-            await forgotPasswordMutation.mutateAsync(formData);
-
-            setEmail(data.email);
-
-            reset();
-            router.push('/forgot-password/success-send-link');
-        } catch {
-            // Error display is handled by the mutation state.
-        }
+        forgotPasswordMutation.mutate(
+            { email: data.email, formData },
+            {
+                onSuccess: () => {
+                    reset();
+                },
+            },
+        );
     };
 
     return (

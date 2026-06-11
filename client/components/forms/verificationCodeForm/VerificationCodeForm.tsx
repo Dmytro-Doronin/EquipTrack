@@ -4,7 +4,6 @@ import type { ClipboardEvent, ComponentPropsWithoutRef, FormEvent, KeyboardEvent
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { forwardRef, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -112,11 +111,10 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
             normalizeCode(defaultValue, length),
         );
         const maxAllowedStep = useSignupFlowStore((state) => state.maxAllowedStep);
-        const router = useRouter();
-        const setMaxAllowedStep = useSignupFlowStore((state) => state.setMaxAllowedStep);
         const [codeError, setCodeError] = useState<string | null>(null);
         const confirmSignupCodeMutation = useConfirmSignupCodeMutation();
-        const finalErrorMessage = errorMessage ?? codeError;
+        const finalErrorMessage =
+            errorMessage ?? codeError ?? confirmSignupCodeMutation.error?.message;
         const email = useSignupFlowStore((state) => state.email);
         const code = normalizeCode(isControlled ? value : uncontrolledValue, length);
         const digits = useMemo(
@@ -142,7 +140,7 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
             }
         };
 
-        const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
             event.preventDefault();
 
             setCodeError(null);
@@ -159,29 +157,11 @@ export const VerificationCodeForm = forwardRef<HTMLInputElement, VerificationCod
 
             onSubmit?.(code);
 
-            try {
-                const formData = new FormData();
-                formData.append('email', email);
-                formData.append('code', code);
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('code', code);
 
-                const result = await confirmSignupCodeMutation.mutateAsync(formData);
-
-                if (!result.success) {
-                    const codeMessage = result.errors?.code?.[0];
-                    const formMessage = result.errors?.form?.[0];
-
-                    setCodeError(
-                        codeMessage ?? formMessage ?? result.message ?? 'Code confirmation failed',
-                    );
-
-                    return;
-                }
-
-                setMaxAllowedStep('success-verification');
-                router.push('/signup/success-verification');
-            } catch {
-                setCodeError('Something went wrong. Please try again.');
-            }
+            confirmSignupCodeMutation.mutate(formData);
         };
 
         const focusInput = (index: number) => {
