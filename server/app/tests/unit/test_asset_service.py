@@ -121,6 +121,23 @@ def test_update_asset_partially_updates_image_url():
     dependencies["db"].commit.assert_called_once()
 
 
+def test_list_assets_uses_membership_organization_scope():
+    asset_service, dependencies = make_asset_service()
+    membership = make_membership(role="member", organization_id=7)
+    asset = make_asset(organization_id=membership.organization_id)
+
+    dependencies["asset_query_repository"].find_by_organization.return_value = [asset]
+
+    result = asset_service.list_assets(membership=membership)
+
+    assert len(result) == 1
+    assert result[0].organizationId == membership.organization_id
+    assert result[0].imageUrl == asset.image_url
+    dependencies["asset_query_repository"].find_by_organization.assert_called_once_with(
+        organization_id=membership.organization_id,
+    )
+
+
 def test_update_asset_rejects_assets_from_another_organization():
     asset_service, dependencies = make_asset_service()
     membership = make_membership(role="owner", organization_id=1)

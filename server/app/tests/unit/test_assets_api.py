@@ -83,6 +83,42 @@ def install_asset_service(service):
     app.dependency_overrides[get_asset_service] = lambda: service
 
 
+def test_member_can_list_assets(monkeypatch):
+    install_authenticated_user()
+    membership = install_membership(monkeypatch, role="member")
+    service = SimpleNamespace(
+        list_assets=Mock(return_value=[make_asset_schema()]),
+    )
+    install_asset_service(service)
+
+    response = client.get("/api/assets")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["success"] is True
+    assert payload["data"][0]["name"] == "Dell XPS 15"
+    assert payload["data"][0]["imageUrl"] == "https://cdn.example.com/assets/laptop.jpg"
+    service.list_assets.assert_called_once_with(membership=membership)
+
+
+def test_list_assets_returns_empty_list_for_empty_organization(monkeypatch):
+    install_authenticated_user()
+    membership = install_membership(monkeypatch, role="member")
+    service = SimpleNamespace(
+        list_assets=Mock(return_value=[]),
+    )
+    install_asset_service(service)
+
+    response = client.get("/api/assets")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "success": True,
+        "data": [],
+    }
+    service.list_assets.assert_called_once_with(membership=membership)
+
+
 def test_owner_can_create_asset(monkeypatch):
     install_authenticated_user()
     install_membership(monkeypatch, role="owner")
@@ -201,6 +237,18 @@ def test_unauthenticated_user_cannot_create_asset():
 
     assert response.status_code == 401
     service.create_asset.assert_not_called()
+
+
+def test_unauthenticated_user_cannot_list_assets():
+    service = SimpleNamespace(
+        list_assets=Mock(),
+    )
+    install_asset_service(service)
+
+    response = client.get("/api/assets")
+
+    assert response.status_code == 401
+    service.list_assets.assert_not_called()
 
 
 def test_unauthenticated_user_cannot_update_asset():
