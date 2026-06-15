@@ -56,3 +56,8 @@ class AssetResponseSchema(BaseModel):
     success: bool
     message: str
     data: AssetSchema
+
+
+class AssetListResponseSchema(BaseModel):
+    success: bool
+    data: list[AssetSchema]

@@ -71,6 +71,16 @@ class AssetService:
 
         return self._to_asset_schema(asset)
 
+    def list_assets(
+        self,
+        membership: OrganizationMember,
+    ) -> list[AssetSchema]:
+        assets = self.asset_query_repository.find_by_organization(
+            organization_id=membership.organization_id,
+        )
+
+        return [self._to_asset_schema(asset) for asset in assets]
+
     def update_asset(
         self,
         manager_membership: OrganizationMember,

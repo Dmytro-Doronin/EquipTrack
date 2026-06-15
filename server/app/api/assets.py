@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, status
 
 from app.dependencies.asset_dependencies import (
+    AssetMembership,
     AssetManagerMembership,
     get_asset_service,
 )
-from app.schemas.asset import AssetResponseSchema, AssetCreateSchema, AssetUpdateSchema
+from app.schemas.asset import (
+    AssetCreateSchema,
+    AssetListResponseSchema,
+    AssetResponseSchema,
+    AssetUpdateSchema,
+)
 from app.services.asset_service import AssetService
 from app.validators.asset_validator import (
     validate_create_asset_body,
@@ -12,6 +18,17 @@ from app.validators.asset_validator import (
 )
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+
+
+@router.get("", response_model=AssetListResponseSchema)
+def list_assets(
+    membership: AssetMembership,
+    asset_service: AssetService = Depends(get_asset_service),
+) -> AssetListResponseSchema:
+    return AssetListResponseSchema(
+        success=True,
+        data=asset_service.list_assets(membership=membership),
+    )
 
 
 @router.post(

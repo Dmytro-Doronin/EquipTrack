@@ -47,6 +47,16 @@ class AssetQueryRepository:
 
         return list(self.db.scalars(statement).all())
 
+    def find_by_organization(self, organization_id: int) -> list[Asset]:
+        statement = (
+            select(Asset)
+            .options(joinedload(Asset.assigned_to_user))
+            .where(Asset.organization_id == organization_id)
+            .order_by(Asset.created_at.desc())
+        )
+
+        return list(self.db.scalars(statement).all())
+
     def find_by_id(self, asset_id: int) -> Asset | None:
         statement = (
             select(Asset)

@@ -33,6 +33,26 @@ def require_asset_manager_role(
     return membership
 
 
+def require_asset_membership(
+    current_user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> OrganizationMember:
+    membership = OrganizationMemberQueryRepository(db).find_active_by_user_id(
+        current_user.id,
+    )
+
+    if membership is None:
+        raise_app_error("Forbidden", status_code=403)
+
+    return membership
+
+
+AssetMembership = Annotated[
+    OrganizationMember,
+    Depends(require_asset_membership),
+]
+
+
 AssetManagerMembership = Annotated[
     OrganizationMember,
     Depends(require_asset_manager_role),
