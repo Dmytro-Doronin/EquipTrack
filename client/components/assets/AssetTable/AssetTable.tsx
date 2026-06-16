@@ -1,51 +1,12 @@
-import type { ReactNode } from 'react';
-
 import type { AssetTableItem } from '@/components/assets/model/types';
 
+import { ColumnHeader } from '@/components/assets/AssetTable/ColumnHeader';
+import { columns } from '@/components/assets/AssetTable/variables';
 import { AssetTableRow } from '@/components/assets/AssetTableRow/AssetTableRow';
 
 type AssetTableProps = {
     assets: AssetTableItem[];
 };
-
-type TableColumn = {
-    align?: 'left' | 'right';
-    isSortable?: boolean;
-    label: string;
-};
-
-const columns: TableColumn[] = [
-    {
-        isSortable: true,
-        label: 'Asset',
-    },
-    {
-        isSortable: true,
-        label: 'Category',
-    },
-    {
-        isSortable: true,
-        label: 'Status',
-    },
-    {
-        label: 'Assigned to',
-    },
-    {
-        isSortable: true,
-        label: 'Assigned date',
-    },
-    {
-        label: 'Due date',
-    },
-    {
-        isSortable: true,
-        label: 'Created date',
-    },
-    {
-        align: 'right',
-        label: 'Actions',
-    },
-];
 
 export const AssetTable = ({ assets }: AssetTableProps) => {
     return (
@@ -96,34 +57,3 @@ export const AssetTable = ({ assets }: AssetTableProps) => {
         </section>
     );
 };
-
-type ColumnHeaderProps = {
-    align?: TableColumn['align'];
-    children: ReactNode;
-    isSortable?: boolean;
-};
-
-const ColumnHeader = ({ align = 'left', children, isSortable = false }: ColumnHeaderProps) => (
-    <span
-        className={[
-            'inline-flex items-center gap-1.5',
-            isSortable ? 'text-main' : '',
-            align === 'right' ? 'justify-end' : '',
-        ].join(' ')}
-    >
-        {children}
-        {isSortable && <SortIcon />}
-    </span>
-);
-
-const SortIcon = () => (
-    <svg aria-hidden="true" className="size-3.5 shrink-0" fill="none" viewBox="0 0 16 16">
-        <path
-            d="M5 6L8 3l3 3M11 10l-3 3-3-3"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-        />
-    </svg>
-);
