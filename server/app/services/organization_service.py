@@ -1,6 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.permissions import MEMBER_INVITE, get_permissions_for_role
 from app.errors.app_error import raise_app_error
 from app.errors.validation_error import raise_validation_error
 from app.models.organization_member import OrganizationMember
@@ -62,12 +63,12 @@ class OrganizationService:
 
     def get_pending_join_requests(
         self,
-        current_user: User,
+        membership: OrganizationMember,
         organization_id: int,
         status: str,
     ) -> list[PendingJoinRequestSchema]:
-        self._ensure_organization_moderator(
-            current_user=current_user,
+        self._ensure_membership_can_invite(
+            membership=membership,
             organization_id=organization_id,
         )
 
@@ -213,12 +214,12 @@ class OrganizationService:
 
     def approve_join_request(
         self,
-        current_user: User,
+        membership: OrganizationMember,
         organization_id: int,
         request_id: int,
     ) -> ApproveJoinRequestResultSchema:
-        self._ensure_organization_moderator(
-            current_user=current_user,
+        self._ensure_membership_can_invite(
+            membership=membership,
             organization_id=organization_id,
         )
         join_request = self._get_join_request_for_organization(
@@ -270,12 +271,12 @@ class OrganizationService:
 
     def reject_join_request(
         self,
-        current_user: User,
+        membership: OrganizationMember,
         organization_id: int,
         request_id: int,
     ) -> RejectJoinRequestResultSchema:
-        self._ensure_organization_moderator(
-            current_user=current_user,
+        self._ensure_membership_can_invite(
+            membership=membership,
             organization_id=organization_id,
         )
         join_request = self._get_join_request_for_organization(
@@ -304,9 +305,9 @@ class OrganizationService:
             status="rejected",
         )
 
-    def _ensure_organization_moderator(
+    def _ensure_membership_can_invite(
         self,
-        current_user: User,
+        membership: OrganizationMember,
         organization_id: int,
     ) -> None:
         organization = self.organization_query_repository.find_by_id(organization_id)
@@ -314,14 +315,12 @@ class OrganizationService:
         if organization is None:
             raise_app_error("Organization not found", status_code=404)
 
-        membership = (
-            self.organization_member_query_repository.find_active_by_user_and_organization(
-                user_id=current_user.id,
-                organization_id=organization_id,
-            )
-        )
+        permissions = set(get_permissions_for_role(membership.role))
 
-        if membership is None or membership.role not in {"owner", "admin"}:
+        if (
+            membership.organization_id != organization_id
+            or MEMBER_INVITE not in permissions
+        ):
             raise_app_error("Forbidden", status_code=403)
 
     def _get_join_request_for_organization(

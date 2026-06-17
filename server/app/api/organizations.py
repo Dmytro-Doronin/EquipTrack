@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.api.dependencies.auth import CurrentUser
-from app.dependencies.organization_dependencies import get_organization_service
+from app.dependencies.organization_dependencies import (
+    OrganizationInviteMembership,
+    get_organization_service,
+)
 from app.schemas.organization import (
     ApproveJoinRequestResponseSchema,
     CreateOrganizationResponseSchema,
@@ -67,14 +70,14 @@ def create_join_request(
 )
 def get_join_requests(
     organization_id: int,
-    current_user: CurrentUser,
+    membership: OrganizationInviteMembership,
     status: str = Query(default="pending"),
     organization_service: OrganizationService = Depends(get_organization_service),
 ) -> PendingJoinRequestsResponseSchema:
     return PendingJoinRequestsResponseSchema(
         success=True,
         data=organization_service.get_pending_join_requests(
-            current_user=current_user,
+            membership=membership,
             organization_id=organization_id,
             status=status,
         ),
@@ -88,14 +91,14 @@ def get_join_requests(
 def approve_join_request(
     organization_id: int,
     request_id: int,
-    current_user: CurrentUser,
+    membership: OrganizationInviteMembership,
     organization_service: OrganizationService = Depends(get_organization_service),
 ) -> ApproveJoinRequestResponseSchema:
     return ApproveJoinRequestResponseSchema(
         success=True,
         message="Join request approved successfully",
         data=organization_service.approve_join_request(
-            current_user=current_user,
+            membership=membership,
             organization_id=organization_id,
             request_id=request_id,
         ),
@@ -109,14 +112,14 @@ def approve_join_request(
 def reject_join_request(
     organization_id: int,
     request_id: int,
-    current_user: CurrentUser,
+    membership: OrganizationInviteMembership,
     organization_service: OrganizationService = Depends(get_organization_service),
 ) -> RejectJoinRequestResponseSchema:
     return RejectJoinRequestResponseSchema(
         success=True,
         message="Join request rejected successfully",
         data=organization_service.reject_join_request(
-            current_user=current_user,
+            membership=membership,
             organization_id=organization_id,
             request_id=request_id,
         ),

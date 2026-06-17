@@ -3,9 +3,14 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies.auth import CurrentUser
+from app.core.permissions import (
+    ASSET_CREATE,
+    ASSET_DELETE,
+    ASSET_READ,
+    ASSET_UPDATE,
+)
 from app.db.database import get_db
-from app.errors.app_error import raise_app_error
+from app.dependencies.permission_dependencies import require_permissions
 from app.models.organization_member import OrganizationMember
 from app.repositories.command_repositories.asset_command_repository import (
     AssetCommandRepository,
@@ -19,44 +24,31 @@ from app.repositories.query_repositories.organization_member_query_repository im
 from app.services.asset_service import AssetService
 
 
-def require_asset_manager_role(
-    current_user: CurrentUser,
-    db: Session = Depends(get_db),
-) -> OrganizationMember:
-    membership = OrganizationMemberQueryRepository(db).find_active_by_user_id(
-        current_user.id,
-    )
-
-    if membership is None or membership.role not in {"owner", "admin"}:
-        raise_app_error("Forbidden", status_code=403)
-
-    return membership
-
-
-def require_asset_membership(
-    current_user: CurrentUser,
-    db: Session = Depends(get_db),
-) -> OrganizationMember:
-    membership = OrganizationMemberQueryRepository(db).find_active_by_user_id(
-        current_user.id,
-    )
-
-    if membership is None:
-        raise_app_error("Forbidden", status_code=403)
-
-    return membership
-
-
 AssetMembership = Annotated[
     OrganizationMember,
-    Depends(require_asset_membership),
+    Depends(require_permissions(ASSET_READ)),
 ]
 
 
-AssetManagerMembership = Annotated[
+AssetCreatorMembership = Annotated[
     OrganizationMember,
-    Depends(require_asset_manager_role),
+    Depends(require_permissions(ASSET_CREATE)),
 ]
+
+
+AssetUpdaterMembership = Annotated[
+    OrganizationMember,
+    Depends(require_permissions(ASSET_UPDATE)),
+]
+
+
+AssetDeleterMembership = Annotated[
+    OrganizationMember,
+    Depends(require_permissions(ASSET_DELETE)),
+]
+
+
+AssetManagerMembership = AssetCreatorMembership
 
 
 def get_asset_service(db: Session = Depends(get_db)) -> AssetService:

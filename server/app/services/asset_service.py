@@ -118,6 +118,27 @@ class AssetService:
 
         return self._to_asset_schema(asset)
 
+    def delete_asset(
+        self,
+        manager_membership: OrganizationMember,
+        asset_id: int,
+    ) -> AssetSchema:
+        asset = self.asset_query_repository.find_by_id(asset_id)
+
+        if asset is None or asset.organization_id != manager_membership.organization_id:
+            raise_app_error("Asset not found", status_code=404)
+
+        deleted_asset = self._to_asset_schema(asset)
+
+        try:
+            self.asset_command_repository.delete(asset)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+
+        return deleted_asset
+
     def _ensure_assignee_belongs_to_organization(
         self,
         assigned_to_user_id: int | None,

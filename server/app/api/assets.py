@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, status
 
 from app.dependencies.asset_dependencies import (
+    AssetCreatorMembership,
+    AssetDeleterMembership,
     AssetMembership,
-    AssetManagerMembership,
+    AssetUpdaterMembership,
     get_asset_service,
 )
 from app.schemas.asset import (
@@ -37,7 +39,7 @@ def list_assets(
     status_code=status.HTTP_201_CREATED,
 )
 def create_asset(
-    manager_membership: AssetManagerMembership,
+    manager_membership: AssetCreatorMembership,
     data: AssetCreateSchema = Depends(validate_create_asset_body),
     asset_service: AssetService = Depends(get_asset_service),
 ) -> AssetResponseSchema:
@@ -54,7 +56,7 @@ def create_asset(
 @router.patch("/{asset_id}", response_model=AssetResponseSchema)
 def update_asset(
     asset_id: int,
-    manager_membership: AssetManagerMembership,
+    manager_membership: AssetUpdaterMembership,
     data: AssetUpdateSchema = Depends(validate_update_asset_body),
     asset_service: AssetService = Depends(get_asset_service),
 ) -> AssetResponseSchema:
@@ -65,5 +67,21 @@ def update_asset(
             manager_membership=manager_membership,
             asset_id=asset_id,
             data=data,
+        ),
+    )
+
+
+@router.delete("/{asset_id}", response_model=AssetResponseSchema)
+def delete_asset(
+    asset_id: int,
+    manager_membership: AssetDeleterMembership,
+    asset_service: AssetService = Depends(get_asset_service),
+) -> AssetResponseSchema:
+    return AssetResponseSchema(
+        success=True,
+        message="Asset deleted successfully",
+        data=asset_service.delete_asset(
+            manager_membership=manager_membership,
+            asset_id=asset_id,
         ),
     )

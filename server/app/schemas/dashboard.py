@@ -105,6 +105,7 @@ class DashboardContextSchema(BaseModel):
     activeOrganization: DashboardOrganizationSchema | None = None
     membership: DashboardMembershipSchema | None = None
     pendingRequests: list[DashboardPendingRequestSchema] = Field(default_factory=list)
+    permissions: list[str] = Field(default_factory=list)
     stats: DashboardStatsSchema = Field(default_factory=DashboardStatsSchema)
     latestAssets: list[DashboardLatestAssetItemSchema] = Field(default_factory=list)
     membersPreview: list[DashboardMemberPreviewItemSchema] = Field(default_factory=list)

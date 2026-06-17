@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from app.core.permissions import get_permissions_for_role
 from app.models.activity_log import ActivityLog
 from app.models.asset import Asset
 from app.models.asset_transfer import AssetTransfer
@@ -57,6 +58,11 @@ class DashboardService:
         active_organization = (
             active_membership.organization if active_membership is not None else None
         )
+        permissions = (
+            get_permissions_for_role(active_membership.role)
+            if active_membership is not None
+            else []
+        )
         pending_requests = (
             []
             if active_membership is not None
@@ -105,6 +111,7 @@ class DashboardService:
                 )
                 for pending_request in pending_requests
             ],
+            permissions=permissions,
             **member_dashboard_data,
             **admin_dashboard_data,
         )

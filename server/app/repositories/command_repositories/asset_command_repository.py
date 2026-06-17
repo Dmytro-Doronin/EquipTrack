@@ -47,3 +47,7 @@ class AssetCommandRepository:
         self.db.refresh(asset)
 
         return asset
+
+    def delete(self, asset: Asset) -> None:
+        self.db.delete(asset)
+        self.db.flush()
