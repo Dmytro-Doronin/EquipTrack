@@ -6,6 +6,7 @@ import type {
     DashboardTransferUser,
 } from '@/types/dashboard/types';
 
+import { Can } from '@/components/dashboard/Can';
 import { formatDisplayDate } from '@/utils/formatDate';
 
 type MemberDashboardProps = {
@@ -54,7 +55,9 @@ export function MemberDashboard({ context, organization }: MemberDashboardProps)
                 ))}
             </div>
 
-            <MemberAssetsList assets={context.myAssets} />
+            <Can permission="asset:read">
+                <MemberAssetsList assets={context.myAssets} />
+            </Can>
             <MemberTransfersList transfers={pendingTransfers} />
             <RecentActivityList recentActivity={context.recentActivity} />
         </section>

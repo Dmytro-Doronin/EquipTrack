@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { dashboardContextQueryKey } from '@/hooks/query/useDashboardContext';
 import { createOrganization } from '@/shared/api/organizations/createOrganization';
 
 export function useCreateOrganizationMutation() {
@@ -7,6 +8,6 @@ export function useCreateOrganizationMutation() {
 
     return useMutation({
         mutationFn: createOrganization,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard-context'] }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: dashboardContextQueryKey }),
     });
 }

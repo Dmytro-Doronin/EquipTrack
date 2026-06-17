@@ -7,6 +7,7 @@ import { formatStatus } from '@/utils/formatUtils';
 
 type AssetTableRowProps = {
     asset: AssetTableItem;
+    showActions: boolean;
 };
 
 const statusBadgeClassNames: Record<AssetStatus, string> = {
@@ -16,7 +17,7 @@ const statusBadgeClassNames: Record<AssetStatus, string> = {
     maintenance: 'bg-amber-50 text-amber-700 ring-amber-200',
 };
 
-export const AssetTableRow = ({ asset }: AssetTableRowProps) => {
+export const AssetTableRow = ({ asset, showActions }: AssetTableRowProps) => {
     const assignedDate = formatDisplayDate(asset.assignedAt);
     const createdDate = formatDisplayDate(asset.createdAt);
     const dueDate = formatDisplayDate(asset.dueDate);
@@ -51,17 +52,19 @@ export const AssetTableRow = ({ asset }: AssetTableRowProps) => {
             <td className="px-5 py-4 text-sm text-sub-text">{assignedDate ?? '-'}</td>
             <td className="px-5 py-4 text-sm text-sub-text">{dueDate ?? '-'}</td>
             <td className="px-5 py-4 text-sm text-sub-text">{createdDate ?? '-'}</td>
-            <td className="px-5 py-4 text-right">
-                <Button
-                    aria-label={`Open actions for ${asset.name}`}
-                    className="size-9 rounded-full text-sub-text hover:bg-gray-100 hover:text-dark"
-                    size="transparent"
-                    type="button"
-                    variant="transparent"
-                >
-                    <MoreHorizontalIcon />
-                </Button>
-            </td>
+            {showActions && (
+                <td className="px-5 py-4 text-right">
+                    <Button
+                        aria-label={`Open actions for ${asset.name}`}
+                        className="size-9 rounded-full text-sub-text hover:bg-gray-100 hover:text-dark"
+                        size="transparent"
+                        type="button"
+                        variant="transparent"
+                    >
+                        <MoreHorizontalIcon />
+                    </Button>
+                </td>
+            )}
         </tr>
     );
 };

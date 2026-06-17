@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
+import { Can } from '@/components/dashboard/Can';
 import { SidebarNavItem } from '@/components/dashboard/SidebarNavItem';
 import { SidebarUserCard } from '@/components/dashboard/SidebarUserCard';
 import CollapseIcon from '@/components/icons/CollapseIcon';
@@ -94,26 +95,30 @@ export const DashboardSidebar = () => {
                             {/*    isActive={isNavItemActive('/dashboard/users')}*/}
                             {/*    label="Users"*/}
                             {/*/>*/}
-                            <SidebarNavItem
-                                href="/dashboard/assets"
-                                icon={<EquipmentIcon />}
-                                isCollapsed={isCollapsed}
-                                isActive={isNavItemActive('/dashboard/assets')}
-                                label="Assets"
-                            />
+                            <Can permission="asset:read">
+                                <SidebarNavItem
+                                    href="/dashboard/assets"
+                                    icon={<EquipmentIcon />}
+                                    isCollapsed={isCollapsed}
+                                    isActive={isNavItemActive('/dashboard/assets')}
+                                    label="Assets"
+                                />
+                            </Can>
                         </div>
                     </section>
 
                     <section>
                         <h2 className={sectionTitleClassName}>Other</h2>
                         <div className="space-y-1">
-                            <SidebarNavItem
-                                href="/dashboard/settings"
-                                isActive={isNavItemActive('/dashboard/settings')}
-                                icon={<SettingsIcon />}
-                                isCollapsed={isCollapsed}
-                                label="Settings"
-                            />
+                            <Can permission="organization:update">
+                                <SidebarNavItem
+                                    href="/dashboard/settings"
+                                    isActive={isNavItemActive('/dashboard/settings')}
+                                    icon={<SettingsIcon />}
+                                    isCollapsed={isCollapsed}
+                                    label="Settings"
+                                />
+                            </Can>
                             <SidebarNavItem
                                 href="/dashboard/help"
                                 isActive={isNavItemActive('/dashboard/help')}

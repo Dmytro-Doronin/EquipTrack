@@ -4,6 +4,7 @@ import { AssetStatusOverview } from '@/components/dashboard/adminDashboard/Asset
 import { LatestAssetsList } from '@/components/dashboard/adminDashboard/LatestAssetsList';
 import { MembersPreviewList } from '@/components/dashboard/adminDashboard/MembersPreviewList';
 import { RecentActivityList } from '@/components/dashboard/adminDashboard/RecentActivityList';
+import { Can } from '@/components/dashboard/Can';
 import { PendingJoinRequestsPanel } from '@/components/dashboard/PendingJoinRequestsPanel';
 import { formatRole } from '@/utils/formatUtils';
 
@@ -82,10 +83,14 @@ export const AdminDashboard = ({ context, organization }: AdminDashboardProps) =
                 ))}
             </div>
 
-            <AssetStatusOverview context={context} />
-            <LatestAssetsList assets={context.latestAssets} />
+            <Can permission="asset:read">
+                <AssetStatusOverview context={context} />
+                <LatestAssetsList assets={context.latestAssets} />
+            </Can>
             <MembersPreviewList members={context.membersPreview} />
-            <PendingJoinRequestsPanel organizationId={organization.id} />
+            <Can permission="member:invite">
+                <PendingJoinRequestsPanel organizationId={organization.id} />
+            </Can>
             <RecentActivityList recentActivity={context.recentActivity} />
         </section>
     );

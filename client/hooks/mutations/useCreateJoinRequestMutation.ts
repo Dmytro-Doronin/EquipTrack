@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { dashboardContextQueryKey } from '@/hooks/query/useDashboardContext';
 import { createJoinRequest } from '@/shared/api/organizations/createJoinRequest';
 
 export function useCreateJoinRequestMutation() {
@@ -7,6 +8,6 @@ export function useCreateJoinRequestMutation() {
 
     return useMutation({
         mutationFn: createJoinRequest,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard-context'] }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: dashboardContextQueryKey }),
     });
 }

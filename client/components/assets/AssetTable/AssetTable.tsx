@@ -3,12 +3,19 @@ import type { AssetTableItem } from '@/components/assets/model/types';
 import { ColumnHeader } from '@/components/assets/AssetTable/ColumnHeader';
 import { columns } from '@/components/assets/AssetTable/variables';
 import { AssetTableRow } from '@/components/assets/AssetTableRow/AssetTableRow';
+import { useDashboardAccess } from '@/hooks/custom/useDashboardAccess';
 
 type AssetTableProps = {
     assets: AssetTableItem[];
 };
 
 export const AssetTable = ({ assets }: AssetTableProps) => {
+    const { canDeleteAsset, canUpdateAsset } = useDashboardAccess();
+    const showActions = canUpdateAsset || canDeleteAsset;
+    const visibleColumns = showActions
+        ? columns
+        : columns.filter((column) => column.label !== 'Actions');
+
     return (
         <section className="overflow-hidden rounded-[12px] border border-gray-main bg-white shadow-sm">
             <div className="flex flex-col gap-1 border-b border-gray-main px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -22,7 +29,7 @@ export const AssetTable = ({ assets }: AssetTableProps) => {
                 <table className="w-full min-w-[1080px] border-collapse text-left">
                     <thead className="bg-round/80 text-xs font-semibold uppercase text-sub-text">
                         <tr>
-                            {columns.map((column) => (
+                            {visibleColumns.map((column) => (
                                 <th
                                     className={[
                                         'px-5 py-3',
@@ -43,7 +50,7 @@ export const AssetTable = ({ assets }: AssetTableProps) => {
                     </thead>
                     <tbody className="divide-y divide-gray-main">
                         {assets.map((asset) => (
-                            <AssetTableRow asset={asset} key={asset.id} />
+                            <AssetTableRow asset={asset} key={asset.id} showActions={showActions} />
                         ))}
                     </tbody>
                 </table>
