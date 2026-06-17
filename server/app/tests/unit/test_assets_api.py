@@ -79,6 +79,14 @@ def install_membership(monkeypatch: pytest.MonkeyPatch, role: str):
     return membership
 
 
+def install_no_membership(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(
+        OrganizationMemberQueryRepository,
+        "find_active_by_user_id",
+        lambda self, user_id: None,
+    )
+
+
 def install_asset_service(service):
     app.dependency_overrides[get_asset_service] = lambda: service
 
@@ -144,6 +152,50 @@ def test_owner_can_create_asset(monkeypatch):
     service.create_asset.assert_called_once()
 
 
+def test_admin_can_create_asset(monkeypatch):
+    install_authenticated_user()
+    install_membership(monkeypatch, role="admin")
+    service = SimpleNamespace(
+        create_asset=Mock(return_value=make_asset_schema()),
+    )
+    install_asset_service(service)
+
+    response = client.post(
+        "/api/assets",
+        json={
+            "category": "Laptop",
+            "name": "Dell XPS 15",
+            "serialNumber": "DXPS-001",
+        },
+    )
+
+    assert response.status_code == 201
+    service.create_asset.assert_called_once()
+
+
+def test_owner_can_update_asset(monkeypatch):
+    install_authenticated_user()
+    install_membership(monkeypatch, role="owner")
+    service = SimpleNamespace(
+        update_asset=Mock(
+            return_value=make_asset_schema(
+                name="Updated asset",
+            ),
+        ),
+    )
+    install_asset_service(service)
+
+    response = client.patch(
+        "/api/assets/44",
+        json={
+            "name": "Updated asset",
+        },
+    )
+
+    assert response.status_code == 200
+    service.update_asset.assert_called_once()
+
+
 def test_admin_can_update_asset(monkeypatch):
     install_authenticated_user()
     install_membership(monkeypatch, role="admin")
@@ -168,6 +220,37 @@ def test_admin_can_update_asset(monkeypatch):
     assert payload["success"] is True
     assert payload["data"]["imageUrl"] == "https://cdn.example.com/assets/updated.jpg"
     service.update_asset.assert_called_once()
+
+
+def test_owner_can_delete_asset(monkeypatch):
+    install_authenticated_user()
+    install_membership(monkeypatch, role="owner")
+    service = SimpleNamespace(
+        delete_asset=Mock(return_value=make_asset_schema()),
+    )
+    install_asset_service(service)
+
+    response = client.delete("/api/assets/44")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["success"] is True
+    assert payload["message"] == "Asset deleted successfully"
+    service.delete_asset.assert_called_once()
+
+
+def test_admin_can_delete_asset(monkeypatch):
+    install_authenticated_user()
+    install_membership(monkeypatch, role="admin")
+    service = SimpleNamespace(
+        delete_asset=Mock(return_value=make_asset_schema()),
+    )
+    install_asset_service(service)
+
+    response = client.delete("/api/assets/44")
+
+    assert response.status_code == 200
+    service.delete_asset.assert_called_once()
 
 
 def test_member_cannot_create_asset(monkeypatch):
@@ -220,6 +303,51 @@ def test_member_cannot_update_asset(monkeypatch):
     service.update_asset.assert_not_called()
 
 
+def test_member_cannot_delete_asset(monkeypatch):
+    install_authenticated_user()
+    install_membership(monkeypatch, role="member")
+    service = SimpleNamespace(
+        delete_asset=Mock(),
+    )
+    install_asset_service(service)
+
+    response = client.delete("/api/assets/44")
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": {
+            "message": "Forbidden",
+        },
+    }
+    service.delete_asset.assert_not_called()
+
+
+def test_user_without_active_membership_cannot_create_asset(monkeypatch):
+    install_authenticated_user()
+    install_no_membership(monkeypatch)
+    service = SimpleNamespace(
+        create_asset=Mock(),
+    )
+    install_asset_service(service)
+
+    response = client.post(
+        "/api/assets",
+        json={
+            "category": "Laptop",
+            "name": "Dell XPS 15",
+            "serialNumber": "DXPS-001",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": {
+            "message": "Forbidden",
+        },
+    }
+    service.create_asset.assert_not_called()
+
+
 def test_unauthenticated_user_cannot_create_asset():
     service = SimpleNamespace(
         create_asset=Mock(),
@@ -266,3 +394,15 @@ def test_unauthenticated_user_cannot_update_asset():
 
     assert response.status_code == 401
     service.update_asset.assert_not_called()
+
+
+def test_unauthenticated_user_cannot_delete_asset():
+    service = SimpleNamespace(
+        delete_asset=Mock(),
+    )
+    install_asset_service(service)
+
+    response = client.delete("/api/assets/44")
+
+    assert response.status_code == 401
+    service.delete_asset.assert_not_called()

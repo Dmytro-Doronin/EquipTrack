@@ -2,6 +2,11 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+from app.core.permissions import (
+    ADMIN_PERMISSIONS,
+    MEMBER_PERMISSIONS,
+    OWNER_PERMISSIONS,
+)
 from app.services.dashboard_service import DashboardService
 
 
@@ -98,6 +103,7 @@ def test_get_context_enriches_active_member_dashboard_with_real_rows():
     assert result.activeOrganization.name == membership.organization.name
     assert result.membership is not None
     assert result.membership.role == "member"
+    assert result.permissions == MEMBER_PERMISSIONS
     assert result.stats.assignedAssets == 3
     assert result.stats.pendingTransfers == 1
     assert result.stats.overdueReturns == 0
@@ -189,6 +195,7 @@ def test_get_context_enriches_admin_dashboard_with_organization_rows():
 
     assert result.membership is not None
     assert result.membership.role == "admin"
+    assert result.permissions == ADMIN_PERMISSIONS
     assert result.stats.totalAssets == 25
     assert result.stats.assignedAssets == 12
     assert result.stats.availableAssets == 8
@@ -222,6 +229,36 @@ def test_get_context_enriches_admin_dashboard_with_organization_rows():
     )
 
 
+def test_get_context_adds_owner_permissions():
+    dashboard_service, dependencies = make_dashboard_service()
+    user = make_user()
+    membership = make_active_membership(role="owner")
+
+    dependencies[
+        "organization_member_query_repository"
+    ].find_active_by_user_id.return_value = membership
+    dependencies["asset_query_repository"].find_latest_by_organization.return_value = []
+    dependencies["asset_query_repository"].count_by_organization.return_value = 0
+    dependencies["asset_query_repository"].count_by_organization_and_status.return_value = 0
+    dependencies["asset_query_repository"].count_overdue_by_organization.return_value = 0
+    dependencies[
+        "organization_member_query_repository"
+    ].find_active_by_organization_id.return_value = []
+    dependencies[
+        "organization_member_query_repository"
+    ].count_by_organization_and_status.return_value = 0
+    dependencies[
+        "asset_transfer_query_repository"
+    ].count_pending_by_organization.return_value = 0
+    dependencies["activity_log_query_repository"].find_recent_by_organization.return_value = []
+
+    result = dashboard_service.get_context(user)
+
+    assert result.membership is not None
+    assert result.membership.role == "owner"
+    assert result.permissions == OWNER_PERMISSIONS
+
+
 def test_get_context_preserves_pending_request_state_without_member_queries():
     dashboard_service, dependencies = make_dashboard_service()
     user = make_user()
@@ -245,6 +282,7 @@ def test_get_context_preserves_pending_request_state_without_member_queries():
 
     assert result.activeOrganization is None
     assert result.membership is None
+    assert result.permissions == []
     assert result.pendingRequests[0].organizationName == organization.name
     assert result.stats.pendingTransfers == 0
     assert result.myAssets == []

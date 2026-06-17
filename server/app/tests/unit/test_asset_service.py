@@ -160,6 +160,45 @@ def test_update_asset_rejects_assets_from_another_organization():
     dependencies["db"].commit.assert_not_called()
 
 
+def test_delete_asset_removes_asset_from_manager_organization():
+    asset_service, dependencies = make_asset_service()
+    membership = make_membership(role="admin", organization_id=1)
+    asset = make_asset(organization_id=membership.organization_id)
+
+    dependencies["asset_query_repository"].find_by_id.return_value = asset
+
+    result = asset_service.delete_asset(
+        manager_membership=membership,
+        asset_id=asset.id,
+    )
+
+    assert result.id == asset.id
+    assert result.organizationId == membership.organization_id
+    dependencies["asset_command_repository"].delete.assert_called_once_with(asset)
+    dependencies["db"].commit.assert_called_once()
+
+
+def test_delete_asset_rejects_assets_from_another_organization():
+    asset_service, dependencies = make_asset_service()
+    membership = make_membership(role="owner", organization_id=1)
+    asset = make_asset(organization_id=99)
+
+    dependencies["asset_query_repository"].find_by_id.return_value = asset
+
+    with pytest.raises(HTTPException) as exc:
+        asset_service.delete_asset(
+            manager_membership=membership,
+            asset_id=asset.id,
+        )
+
+    assert exc.value.status_code == 404
+    assert exc.value.detail == {
+        "message": "Asset not found",
+    }
+    dependencies["asset_command_repository"].delete.assert_not_called()
+    dependencies["db"].commit.assert_not_called()
+
+
 def test_create_asset_rejects_assignee_outside_organization():
     asset_service, dependencies = make_asset_service()
     membership = make_membership(role="admin", organization_id=1)
