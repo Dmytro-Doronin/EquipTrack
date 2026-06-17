@@ -9,6 +9,7 @@ type DashboardContextPayload = Omit<
     | 'myAssets'
     | 'myTransfers'
     | 'pendingRequests'
+    | 'permissions'
     | 'recentActivity'
     | 'stats'
 > &
@@ -20,6 +21,7 @@ type DashboardContextPayload = Omit<
             | 'myAssets'
             | 'myTransfers'
             | 'pendingRequests'
+            | 'permissions'
             | 'recentActivity'
         >
     > & {
@@ -57,6 +59,7 @@ const normalizeDashboardContext = (context: DashboardContextPayload): DashboardC
         myAssets,
         myTransfers,
         pendingRequests: context.pendingRequests ?? [],
+        permissions: context.permissions ?? [],
         recentActivity: context.recentActivity ?? [],
         stats: normalizeDashboardStats(context.stats, myAssets, myTransfers),
     };

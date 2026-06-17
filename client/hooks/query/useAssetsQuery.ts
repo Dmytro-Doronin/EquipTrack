@@ -8,13 +8,17 @@ import { getErrorMessage } from '@/utils/ErrorUtil';
 
 export const assetsQueryKey = ['assets'] as const;
 
-export const useAssetsQuery = () => {
+type UseAssetsQueryOptions = {
+    enabled?: boolean;
+};
+
+export const useAssetsQuery = ({ enabled = true }: UseAssetsQueryOptions = {}) => {
     const authStatus = useAuthStore((state) => state.status);
 
     const assetsQuery = useQuery({
         queryKey: assetsQueryKey,
         queryFn: getAssets,
-        enabled: authStatus !== 'checking',
+        enabled: authStatus === 'authenticated' && enabled,
     });
 
     return {

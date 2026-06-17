@@ -1,3 +1,15 @@
+export type Permission =
+    | 'asset:read'
+    | 'asset:create'
+    | 'asset:update'
+    | 'asset:delete'
+    | 'transfer:create'
+    | 'member:invite'
+    | 'member:remove'
+    | 'organization:update';
+
+export type DashboardRole = 'owner' | 'admin' | 'member';
+
 export type DashboardContext = {
     user: {
         id: number;
@@ -11,7 +23,7 @@ export type DashboardContext = {
         name: string;
     };
     membership: null | {
-        role: 'owner' | 'admin' | 'member';
+        role: DashboardRole;
         status: 'active' | 'pending';
     };
     pendingRequests: Array<{
@@ -21,6 +33,7 @@ export type DashboardContext = {
         status: 'pending';
         createdAt: string;
     }>;
+    permissions: Permission[];
     stats: DashboardStats;
     latestAssets: DashboardAdminAsset[];
     membersPreview: DashboardOrganizationMemberPreview[];
@@ -86,7 +99,7 @@ export type DashboardOrganizationMemberPreview = {
     login: string;
     email: string;
     avatarUrl?: string | null;
-    role: 'owner' | 'admin' | 'member';
+    role: DashboardRole;
     status: 'active' | 'pending';
     joinedAt: string;
 };
