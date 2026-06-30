@@ -2,10 +2,11 @@ import { create } from 'zustand';
 
 import { lockScroll, unlockScroll } from '@/utils/scroll.util';
 
-export type ModalName = null | 'logout';
+export type ModalName = null | 'logout' | 'createAsset';
 
 type ModalPayload = {
     logout?: never;
+    createAsset?: never;
 };
 
 type ModalState = {

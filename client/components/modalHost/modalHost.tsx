@@ -5,6 +5,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
 
+import { CreateAsset } from '@/components/modals/CreateAsset';
 import { LogoutConfirmation } from '@/components/modals/LogoutConfirmation';
 import { useModalStore } from '@/stores/modal.store';
 
@@ -51,6 +52,7 @@ export const ModalHost = () => {
         >
             <div onClick={(e) => e.stopPropagation()} key={activeModal}>
                 {activeModal === 'logout' && <LogoutConfirmation isOpen={opened} onClose={close} />}
+                {activeModal === 'createAsset' && <CreateAsset isOpen={opened} onClose={close} />}
             </div>
         </div>,
         document.body,

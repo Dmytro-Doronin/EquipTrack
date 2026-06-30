@@ -1,15 +1,13 @@
-import React from 'react';
-
 import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { useLogoutMutation } from '@/hooks/mutations/useLogoutMutation';
 
-interface Props {
+type Props = {
     isOpen: boolean;
     onClose: () => void;
-}
+};
 
-export const LogoutConfirmation: React.FC<Props> = ({ isOpen, onClose }) => {
+export const LogoutConfirmation = ({ isOpen, onClose }: Props) => {
     const { mutateAsync: logout, isPending } = useLogoutMutation();
 
     const onLogoutHandler = async () => {
