@@ -1,11 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { createOrganizationFieldMap } from '@/components/forms/createOrganizationForm/createOrganizationForm.fieldMap';
 import { CreateOrganizationFormValues } from '@/components/forms/createOrganizationForm/createOrganizationForm.types';
 import { createOrganizationSchema } from '@/components/forms/createOrganizationForm/createOrganizationForm.validation';
 import UsersIcon from '@/components/icons/UsersIcon';
@@ -13,7 +13,7 @@ import { Loader } from '@/components/loader/Loader';
 import { Button } from '@/components/ui/button/Button';
 import { ControlledTextField } from '@/components/ui/controlled/controlledTextField/ControlledTextField';
 import { useCreateOrganizationMutation } from '@/hooks/mutations/useCreateOrganizationMutation';
-import { BackendValidationErrorResponse } from '@/shared/api/types/type';
+import { setBackendFieldErrors } from '@/utils/assets/assetsUtils/setBackendFieldErrors';
 import { getErrorMessage } from '@/utils/ErrorUtil';
 
 type CreateOrganizationFormProps = {
@@ -38,26 +38,6 @@ export const CreateOrganizationForm = ({
         },
     });
 
-    const setBackendFieldErrors = (error: unknown) => {
-        if (!axios.isAxiosError<BackendValidationErrorResponse>(error)) {
-            return false;
-        }
-
-        const fieldErrors = error.response?.data?.detail?.errors;
-        const nameError = fieldErrors?.name?.[0];
-
-        if (!nameError) {
-            return false;
-        }
-
-        setError('name', {
-            type: 'server',
-            message: nameError,
-        });
-
-        return true;
-    };
-
     const onSubmitForm = async (data: CreateOrganizationFormValues) => {
         setServerError(null);
 
@@ -75,7 +55,12 @@ export const CreateOrganizationForm = ({
 
             router.replace('/dashboard');
         } catch (error) {
-            const hasFieldError = setBackendFieldErrors(error);
+            const hasFieldError = setBackendFieldErrors<CreateOrganizationFormValues>({
+                error,
+                setError,
+                setServerError,
+                fieldMap: createOrganizationFieldMap,
+            });
 
             if (!hasFieldError) {
                 setServerError(getErrorMessage(error));
