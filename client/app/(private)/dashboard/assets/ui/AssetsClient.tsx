@@ -4,8 +4,10 @@ import { AssetTable } from '@/components/assets/AssetTable/AssetTable';
 import { NoOrganizationDashboard } from '@/components/dashboard/NoOrganizationDashboard';
 import { PendingOrganizationDashboard } from '@/components/dashboard/PendingOrganizationDashboard';
 import { Loader } from '@/components/loader/Loader';
+import { Button } from '@/components/ui/button/Button';
 import { useDashboardAccess } from '@/hooks/custom/useDashboardAccess';
 import { useAssetsQuery } from '@/hooks/query/useAssetsQuery';
+import { useModalStore } from '@/stores/modal.store';
 
 export const AssetsClient = () => {
     const {
@@ -14,10 +16,13 @@ export const AssetsClient = () => {
         error: dashboardError,
         isError: isDashboardError,
         isLoading: isDashboardLoading,
+        canCreateAsset,
     } = useDashboardAccess();
     const { assets, errorMessage, isError, isPending } = useAssetsQuery({
         enabled: Boolean(dashboard?.activeOrganization) && canReadAsset,
     });
+
+    const openModal = useModalStore((s) => s.open);
 
     if (isDashboardLoading) {
         return (
@@ -78,5 +83,12 @@ export const AssetsClient = () => {
         );
     }
 
-    return <AssetTable assets={assets} />;
+    return (
+        <div className="flex flex-col items-end justify-end gap-4">
+            {canCreateAsset && (
+                <Button onClick={() => openModal('createAsset')}>Add new asset</Button>
+            )}
+            <AssetTable assets={assets} />
+        </div>
+    );
 };

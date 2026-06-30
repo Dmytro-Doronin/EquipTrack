@@ -8,7 +8,7 @@ const buttonStyles = cva(
         'font-inherit text-inherit',
         'inline-flex items-center justify-center gap-1',
         'rounded-[8px] text-sm font-medium text-center',
-        'border-0 cursor-pointer select-none outline-none',
+        'border-0 cursor-pointer selects-none outline-none',
         'focus-visible:ring-1 focus-visible:ring-offset-1',
         'transition ease-in-out duration-300',
     ].join(' '),
