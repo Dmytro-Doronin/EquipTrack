@@ -1,9 +1,8 @@
-export type AssetStatus = 'available' | 'assigned' | 'maintenance' | 'lost';
+import type { AssetAssignedUser, AssetStatus } from '@/shared/api/types/asset.types';
 
-export type AssetAssignee = {
-    id: number;
-    login: string;
-};
+export type { AssetStatus };
+
+export type AssetAssignee = AssetAssignedUser;
 
 export type AssetTableItem = {
     assignedAt?: string | null;
